@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.utils import timezone
 class User(models.Model):
     name = models.CharField(verbose_name='Fullname', max_length=100)
     username = models.CharField(verbose_name='Username', max_length=200, null=True,blank=True)
@@ -8,6 +8,9 @@ class User(models.Model):
     number = models.BigIntegerField(verbose_name="Telefon raqami",null=True,blank=True)
     ref_father = models.BigIntegerField(verbose_name='ref_father',null=True,blank=True)
     register = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.name
 from django.utils.timezone import now

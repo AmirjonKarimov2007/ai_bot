@@ -221,7 +221,10 @@ async def premiumprices(message: types.Message):
     if data['premium_price']['message_id'] and data['premium_price']['from_chat_id']:
         message_id = data['premium_price']['message_id']
         fchat_id = data['premium_price']['from_chat_id']
-        await bot.copy_message(chat_id=message.from_user.id,from_chat_id=fchat_id,message_id=message_id)
+        try:
+            await bot.copy_message(chat_id=message.from_user.id,from_chat_id=fchat_id,message_id=message_id)
+        except Exception as e:
+            print(e)
 
 @dp.message_handler(text="Qo'llanma 📄")
 async def bot_start(message: types.Message):
@@ -231,7 +234,10 @@ async def bot_start(message: types.Message):
     if data['get_qollanma']['message_id'] and data['get_qollanma']['from_chat_id']:
         message_id = data['get_qollanma']['message_id']
         chat_id = data['get_qollanma']['from_chat_id']
-        await bot.copy_message(chat_id=message.from_user.id,from_chat_id=chat_id,message_id=message_id,reply_markup=kb.manual())
+        try:
+            await bot.copy_message(chat_id=message.from_user.id,from_chat_id=chat_id,message_id=message_id,reply_markup=kb.manual())
+        except Exception as e:
+            print(e)
         
 @dp.message_handler(text="To'lovlar tarixi 🧾")
 async def bot_start(message: types.Message):
@@ -245,7 +251,10 @@ async def admin(message:types.Message):
     if data['administator']['message_id'] and data['administator']['from_chat_id']:
         message_id = data['administator']['message_id']
         chat_id = data['administator']['from_chat_id']
-        await bot.copy_message(chat_id=message.from_user.id,from_chat_id=chat_id,message_id=message_id,reply_markup=kb.manual())
+        try:
+            await bot.copy_message(chat_id=message.from_user.id,from_chat_id=chat_id,message_id=message_id,reply_markup=kb.manual())
+        except Exception as e:
+            print(e)
 
 @dp.message_handler(text="🌟 Stars olish")
 async def admin(message:types.Message):
