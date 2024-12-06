@@ -1,8 +1,8 @@
 from aiogram import types
 from loader import dp, bot
 from aiogram.utils.deep_linking import get_start_link
-
-@dp.message_handler(text="🌟 Pul Olish")
+from filters.users import IsUser
+@dp.message_handler(IsUser(),text="🌟 Pul Olish")
 async def Money(message: types.Message):
     user_id =message.from_user
     link = await get_start_link(user_id.id)

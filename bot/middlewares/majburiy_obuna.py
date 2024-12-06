@@ -7,6 +7,14 @@ from data.tekshirish import tekshir
 from loader import bot, db
 from filters import IsUser, IsSuperAdmin, IsGuest
 from filters.admins import IsAdmin
+from datetime import datetime
+import pytz
+
+# O‘zbekiston vaqt zonasi
+uzbekistan_tz = pytz.timezone('Asia/Tashkent')
+
+# Hozirgi vaqtni O‘zbekiston vaqt zonasi bilan olish
+
 
 async def kanallar():
     royxat = []
@@ -18,6 +26,8 @@ async def kanallar():
 
 class Asosiy(BaseMiddleware):
     async def on_pre_process_update(self, xabar: types.Update, data: dict):
+        current_time = datetime.now(uzbekistan_tz)
+
         if xabar.message:
             if xabar.message.pinned_message:
                 pass
@@ -33,14 +43,28 @@ class Asosiy(BaseMiddleware):
                 if argument:
                     if await db.is_user(user_id=int(argument)) and argument.isdigit() and int(argument) > 10:
                         try:
-                            await db.add_user(user_id=user_id, username=username, name=first_name, ref_father=int(argument))
+
+                            if xabar.message.from_user.is_premium:
+                                await db.add_user(
+                                    user_id=user_id, username=username, name=first_name, ref_father=int(argument),is_premium=True,
+                                    created_date=current_time, updated_date=current_time
+                                )                  
+                            else:
+                                await db.add_user(
+                                    user_id=user_id, username=username, name=first_name, ref_father=int(argument),
+                                    created_date=current_time, updated_date=current_time
+                                )  
                         except asyncpg.exceptions.UniqueViolationError:
                             await db.select_user(user_id=user_id)
                         except Exception as e:
                             await bot.send_message(chat_id=ADMINS[0], text=f'Botda xatolik yuz berdi: majburiy_obuna:40{e}')
                 else:
                     try:
-                        await db.add_user(user_id=int(user_id), username=username, name=first_name)
+                        if xabar.message.from_user.is_premium:
+                            await db.add_user(user_id=int(user_id), username=username, name=first_name,is_premium=True,created_date=current_time,updated_date=current_time)
+                        else:
+                            await db.add_user(user_id=int(user_id), username=username, name=first_name,created_date=current_time,updated_date=current_time)
+
                     except asyncpg.exceptions.UniqueViolationError:
                         await db.select_user(user_id=int(user_id))
                     except Exception as e:
@@ -89,6 +113,8 @@ from aiogram.dispatcher import FSMContext
 from loader import dp
 class CheckPhoneNumber(BaseMiddleware):
     async def on_pre_process_update(self, xabar: types.Update, data: dict):
+        current_time = datetime.now(uzbekistan_tz)
+
         if xabar.message:
             user_id = xabar.message.from_user.id
             username = xabar.message.from_user.username
@@ -148,7 +174,11 @@ class CheckPhoneNumber(BaseMiddleware):
                             ffather_name = rfather[0]['name']
                             ffather_username = rfather[0]['username']
                             try:
-                                await db.add_user(user_id=user_id, username=username, name=first_name, ref_father=int(argument))
+                                if xabar.message.from_user.is_premium:
+                                    await db.add_user(user_id=user_id, username=username, name=first_name,is_premium=True ,ref_father=int(argument),created_date=current_time,updated_date=current_time)
+                                else:
+                                    await db.add_user(user_id=user_id, username=username, name=first_name, ref_father=int(argument),created_date=current_time,updated_date=current_time)
+
                                 await bot.send_message(
                                     chat_id=user_id, 
                                     text=f"<b>👋🏻 Assalomu Aleykum {first_name}, botimizga Tashrif buyurganingizdan xursandmiz kelipsiz!\n\nSizni <a href='t.me/{ffather_username}'>{xabar.message.from_user.full_name}</a> taklif qildi.</b>", 
@@ -165,7 +195,11 @@ class CheckPhoneNumber(BaseMiddleware):
                 else:
                     
                     try:
-                        await db.add_user(user_id=int(user_id), username=username, name=first_name)
+                        if xabar.message.from_user.is_premium:
+                            await db.add_user(user_id=user_id, username=username, name=first_name, is_premium=True,ref_father=int(argument),created_date=current_time,updated_date=current_time)
+                        else:
+                            await db.add_user(user_id=user_id, username=username, name=first_name, ref_father=int(argument),created_date=current_time,updated_date=current_time)
+
                     except asyncpg.exceptions.UniqueViolationError:
                         await db.select_user(user_id=int(user_id))
                     except Exception as e:

@@ -5,7 +5,7 @@ from filters.admins import IsAdmin,IsSuperAdmin
 from keyboards.inline.main_menu_super_admin import main_menu_for_admin
 from loader import dp, db
 
-@dp.callback_query_handler(text="stat")
+@dp.callback_query_handler(IsAdmin(),text="stat")
 async def stat(call : types.CallbackQuery):
     stat = await db.stat()
     stat = str(stat)
@@ -29,11 +29,9 @@ async def back_to_main_menu_method(call: types.CallbackQuery,state: FSMContext):
 users = ()
 @dp.message_handler(IsSuperAdmin(),commands=['users'])
 async def send_table(message: types.Message):
-    global users  # Declare 'users' as a global variable
-    # Fetch data from PostgreSQL database
+    global users  
     users_data = await db.select_all_users()
 
-    # Format the table using Markdown
     if users_data:
         headers = [""]
         rows = [headers] + [

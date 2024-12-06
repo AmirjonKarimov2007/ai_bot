@@ -66,4 +66,8 @@ back_to_main_menu = InlineKeyboardMarkup(
 def services_keyboards__board():
     with open('data.json','r') as file:
         data = json.load(file)
-    print(data)
+    markup = InlineKeyboardMarkup(row_width=2)
+    services = data['services']
+    for k,v in services.items():
+        markup.insert(InlineKeyboardButton(text=f"{k}",callback_data=f"services:{v}"))
+    return markup

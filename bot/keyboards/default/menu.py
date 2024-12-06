@@ -3,13 +3,14 @@ from aiogram import types
 class Keyboards:
     def main(self):
         menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        foydalanish = types.KeyboardButton("✅Foydalanish")
         referal = types.KeyboardButton("🌟 Pul Olish")
         topusers = types.KeyboardButton("TOP foydalanuvchilar")
         prices = types.KeyboardButton("💸 Xizmat Narxlari")
         balans = types.KeyboardButton("💳 Mening Hisobim")
         Manual = types.KeyboardButton("Qo'llanma 📄")
         Administrator = types.KeyboardButton("👨‍💻 Administrator")
-        menu.add(referal,topusers),menu.add(prices,balans)
+        menu.add(foydalanish),menu.add(referal,topusers),menu.add(prices,balans)
         return menu.add(Manual,Administrator)
     
     def contact(self):

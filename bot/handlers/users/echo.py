@@ -1,6 +1,7 @@
 from loader import db,dp,bot
 from aiogram import types
-from keyboards.inline.main_menu_super_admin import services_keyboards__board
-@dp.message_handler()
+from keyboards.default.menu import *
+from filters.users import IsUser
+@dp.message_handler(IsUser())
 async def echo(message: types.Message):
-    await message.answer(f"<b>Bo'limni tanlang:</b>",reply_markup=services_keyboards__board())
+    await message.answer(f"<b>Menuni Tanlang:</b>",reply_markup=kb.main())

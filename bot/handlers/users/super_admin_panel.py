@@ -180,17 +180,33 @@ async def channel_list(call: types.CallbackQuery):
 # ADMINLARNI KORISH
 
 # STATISKA KORISH UCHUN
-@dp.callback_query_handler(text="statistics")
-async def stat(call : types.CallbackQuery):
-    stat = await db.stat()
-    stat = str(stat)
+import pytz
+import datetime
+
+@dp.callback_query_handler(IsSuperAdmin(), text="statistics")
+async def stat(call: types.CallbackQuery):
+    uzbekistan_tz = pytz.timezone('Asia/Tashkent')
+    datas = datetime.datetime.now(uzbekistan_tz)
+    yil_oy_kun = datas.date() 
+    soat_minut_sekund = f"{datas.hour}:{datas.minute}:{datas.second}" 
+
+    daily_stat = await db.stat(timeframe="daily")  
+    weekly_stat = await db.stat(timeframe="weekly") 
+    monthly_stat = await db.stat(timeframe="monthly") 
+
+    stat_message = f"<b>👥 Bot foydalanuvchilari soni:</b>\n"
+    stat_message += f"<b>📅 Kunlik: {daily_stat} nafar</b>\n"
+    stat_message += f"<b>📆 Haftalik: {weekly_stat} nafar</b>\n"
+    stat_message += f"<b>📅 Oylik: {monthly_stat} nafar</b>\n"
+    stat_message += f"<b>⏰ Soat: {soat_minut_sekund}</b>\n"
+    stat_message += f"<b>📆 Sana: {yil_oy_kun}</b>"
+
+    inline_button = types.InlineKeyboardMarkup().add(
+        types.InlineKeyboardButton("◀️ Orqaga", callback_data="back_to_main_menu")
+    )
+
     await call.message.delete()
-    datas = datetime.datetime.now()
-    yil_oy_kun = (datetime.datetime.date(datetime.datetime.now()))
-    soat_minut_sekund = f"{datas.hour}:{datas.minute}:{datas.second}"
-    await call.message.answer(f"<b>👥 Bot foydalanuvchilari soni: {(stat)} nafar\n</b>"
-                                f"<b>⏰ Soat: {soat_minut_sekund}\n</b>"
-                                f"<b>📆 Sana: {yil_oy_kun}</b>",reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton("◀️ Orqaga",callback_data="back_to_main_menu")))
+    await call.message.answer(stat_message, reply_markup=inline_button)
 
 
 # ADMINGA SEND FUNC

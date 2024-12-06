@@ -10,12 +10,37 @@ import asyncpg
 from data.config import ADMINS
 logging.basicConfig(level=logging.INFO)
 from keyboards.default.menu import kb
+from django.utils import timezone
+
+
+
+
+
+from datetime import datetime
+import pytz
+
+# O‘zbekiston vaqt zonasini sozlaymiz
+uzbekistan_tz = pytz.timezone('Asia/Tashkent')
+
+# Hozirgi vaqtni O‘zbekiston vaqt zonasi bilan olamiz
+current_time = datetime.now(uzbekistan_tz)
+
+
+
+
+
+
 @dp.callback_query_handler(text="start")
 async def bot_echo(call: CallbackQuery):
     await call.answer(cache_time=1)
     user = call.from_user
     try:
-        await db.add_user(user_id=user.id,username=call.from_user.username, name=user.first_name)
+        if call.from_user.is_premium:
+            await db.add_user(user_id=user.id,username=call.from_user.username,name=user.first_name,is_premium=True
+                            ,created_date=current_time,updated_date=current_time)
+        else:
+            await db.add_user(user_id=user.id,username=call.from_user.username,name=user.first_name
+                            ,created_date=current_time,updated_date=current_time)
     except asyncpg.exceptions.UniqueViolationError:
         await db.select_user(user_id=call.from_user.id)
 
@@ -35,7 +60,13 @@ async def bot_start(message: types.Message):
     user = message.from_user
     username = message.from_user.username
     try:
-        await db.add_user(user_id=message.from_user.id,username=username, name=user.first_name)
+        if message.from_user.is_premium:
+            await db.add_user(user_id=user.id,username=message.from_user.username,name=user.first_name,is_premium=True
+                            ,created_date=current_time,updated_date=current_time)
+        else:
+            await db.add_user(user_id=user.id,username=message.from_user.username,name=user.first_name
+                            ,created_date=current_time,updated_date=current_time)
+
     except asyncpg.exceptions.UniqueViolationError:
         await db.select_user(user_id=message.from_user.id)
     except Exception as ex:
@@ -85,7 +116,12 @@ async def phone_number(message: types.Message,state: FSMContext):
             else:
                 await db.update_user_number(number=int(phone_num), user_id=int(message.from_user.id),register=True)
         else:
-            await db.add_user(name=message.from_user.first_name,username=message.from_user.username,user_id=int(message.from_user.id),number=int(phone_num),register=True)
+            if message.from_user.is_premium:
+                await db.add_user(user_id=message.from_user.id,username=message.from_user.username,name=message.from_user.first_name,is_premium=True
+                            ,created_date=current_time,updated_date=current_time)
+            else:
+                await db.add_user(user_id=message.from_user.id,username=message.from_user.username,name=message.from_user.first_name
+                            ,created_date=current_time,updated_date=current_time)
         await message.answer(f"{message.from_user.first_name}, Tabriklayman botdan muvaffaqiyatli ro'yxatdan o'tdingiz\n\nBoshlash uchun <b>«🌟 Pul Olish»</b> tugmasini bosing", reply_markup=kb.main())
         await state.finish()
     except Exception as e:

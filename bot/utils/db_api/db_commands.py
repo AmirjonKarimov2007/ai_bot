@@ -50,8 +50,18 @@ class Database:
         ])
         return sql, tuple(parameters.values())
 
-    async def stat(self):
-        return await self.execute(f"SELECT COUNT(*) FROM users_user;", fetchval=True)
+    async def stat(self, timeframe="daily"):
+        if timeframe == "daily":
+            sql = "SELECT COUNT(*) FROM users_user WHERE created_date >= CURRENT_DATE"
+        elif timeframe == "weekly":
+            sql = "SELECT COUNT(*) FROM users_user WHERE created_date >= CURRENT_DATE - INTERVAL '7 days'"
+        elif timeframe == "monthly":
+            sql = "SELECT COUNT(*) FROM users_user WHERE created_date >= DATE_TRUNC('month', CURRENT_DATE)"
+        else:
+            sql = "SELECT COUNT(*) FROM users_user"
+        result = await self.execute(sql, fetchval=True)
+        return result
+
 
     async def add_admin(self, user_id: str, full_name: str):
         sql = """
@@ -67,24 +77,28 @@ class Database:
         parameters = tuple(int(param) if param == 'user_id' else param for param in parameters)
 
         return await self.execute(sql, *parameters, fetch=True)
-    async def add_user(self, name, username, user_id, balance=0, number=None, ref_father=None, register=False):
-        if username:
-            if not (username[-3:] == "bot" or username[-3:] == "Bot"):
-                sql = """
-                    INSERT INTO users_user (name, username, user_id, balance, number, ref_father, register)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
-                    RETURNING *
-                """
-                return await self.execute(sql, name, username, user_id, balance, number, ref_father, register, fetchrow=True)
-            else:
-                pass
-        else:
-            sql = """
-                INSERT INTO users_user (name, username, user_id, balance, number, ref_father, register)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
-                RETURNING *
-            """
-            return await self.execute(sql, name, username, user_id, balance, number, ref_father, register, fetchrow=True)
+    async def add_user(
+        self, name, username, user_id, created_date, updated_date, balance=0, number=None, 
+        ref_father=None, register=False, is_premium=False, is_blocked=False
+    ):
+        # Bot foydalanuvchilarni kiritishni cheklash
+        if username and (username[-3:].lower() == "bot"):
+            return None
+
+        # SQL so‘rovi
+        sql = """
+            INSERT INTO users_user (
+                name, username, user_id, balance, number, ref_father, register, 
+                is_premium, is_blocked, created_date, updated_date
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            RETURNING *
+        """
+        # Ma'lumotlarni bazaga qo‘shish
+        return await self.execute(
+            sql, name, username, user_id, balance, number, ref_father, register, 
+            is_premium, is_blocked, created_date, updated_date, fetchrow=True
+        )
 
 
 
@@ -250,29 +264,3 @@ class Database:
         return await self.execute("DELETE FROM Channels WHERE channel=$1", channel, execute=True)
 
 
-
-# Promokodlar
-
-    async def add_promocode(self, user_id, promo_code, package, status, created_at):
-        if isinstance(created_at, datetime):
-            end_date = created_at + timedelta(days=15)  # Amal qilish muddati 15 kun
-        else:
-            raise ValueError("created_at must be a datetime object")
-        
-        sql = """
-            INSERT INTO users_promocode (user_id, promo_code, package, status, created_at, end_date) 
-            VALUES($1, $2, $3, $4, $5, $6)
-        """
-        await self.execute(sql, user_id, promo_code, package, status, created_at, end_date, execute=True)
-
-    async def select_promocode(self, **kwargs):
-        sql = "SELECT * FROM users_promocode WHERE "
-        sql, parameters = self.format_args(sql, kwargs)
-
-        
-        parameters = tuple(int(param) if param == 'promo_code' else param for param in parameters)
-
-        return await self.execute(sql, *parameters, fetch=True)
-    
-    async def delete_promo_code(self, promo_code):
-        return await self.execute("DELETE FROM users_promocode WHERE promo_code=$1", promo_code, execute=True)
