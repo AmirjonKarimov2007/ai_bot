@@ -1,28 +1,33 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import now
+from datetime import timedelta
 class User(models.Model):
     name = models.CharField(verbose_name='Fullname', max_length=100)
     username = models.CharField(verbose_name='Username', max_length=200, null=True,blank=True)
-    user_id = models.BigIntegerField(verbose_name='Telegram_id', unique=True, default=1)
+    user_id = models.BigIntegerField(verbose_name='Telegram_id', unique=True)
     balance = models.BigIntegerField(verbose_name='Balance',default=0,null=True,blank=True)
     number = models.BigIntegerField(verbose_name="Telefon raqami",null=True,blank=True)
     ref_father = models.BigIntegerField(verbose_name='ref_father',null=True,blank=True)
-    register = models.BooleanField(default=False)
-    is_premium = models.BooleanField(default=False)
-    created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
+    register = models.BooleanField(default=False,verbose_name='Register')
+    is_premium = models.BooleanField(default=False,verbose_name="Premium")
+    is_blocked = models.BooleanField(default=False,verbose_name="Blocklash")
+    created_date = models.DateTimeField(auto_now_add=True,verbose_name="Yaratilgan sana")
+    updated_date = models.DateTimeField(auto_now=True,verbose_name="O'zgartirilgan sana")
     def __str__(self):
         return self.name
-from django.utils.timezone import now
-from datetime import timedelta
 
-class PromoCode(models.Model):
-    user_id = models.BigIntegerField(verbose_name='Telegram_id')
-    promo_code = models.CharField(max_length=20, unique=True)
-    package = models.CharField(max_length=50)
-    status = models.CharField(max_length=10, choices=[('activate', 'Activate'), ('deactivate', 'Deactivate')], default='activate')
-    created_at = models.DateTimeField(default=now)
-    end_date = models.DateTimeField(null=True, blank=True, verbose_name='Tugash sanasi va vaqti')
 
-    def __str__(self):
-        return f"Promo Code: {self.promo_code} | Status: {self.status}"
+class Payment(models.Model):
+    username = models.CharField(verbose_name='Username', max_length=200, null=True,blank=True)
+    user_id = models.BigIntegerField(verbose_name='Telegram_id', unique=True)
+    number = models.BigIntegerField(verbose_name="Telefon raqami",null=True,blank=True)
+    balance = models.BigIntegerField(verbose_name='Umummiy Balance',null=True,blank=True)
+    summa = models.BigIntegerField(verbose_name='Tolov Miqtori',null=True,blank=True)
+    is_premium = models.BooleanField(default=False,verbose_name="Premium")
+    is_blocked = models.BooleanField(default=False,verbose_name="Bloklash")
+    created_date = models.DateTimeField(auto_now_add=True,verbose_name="Yaratilgan sana")
+    updated_date = models.DateTimeField(auto_now=True,verbose_name="O'zgartirilgan sana")
+    def __str__(self) -> str:
+        return str(self.username)
+
