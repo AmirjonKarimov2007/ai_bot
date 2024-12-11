@@ -8,6 +8,11 @@ from aiogram.types import InlineKeyboardButton,InlineKeyboardMarkup
 from states.ai_state import ServicesStates
 from keyboards.inline.main_menu_super_admin import services_keyboards__board
 from aiogram.types import ContentTypes
+from utils.ai_api import get_response_from_server
+
+
+
+
 @dp.callback_query_handler(IsUser(),text_contains='select_service:',state='*')
 async def select_service(call: types.CallbackQuery):
     info =  call.data.rsplit(":")
@@ -19,7 +24,7 @@ async def select_service(call: types.CallbackQuery):
     markup.add(InlineKeyboardButton(text="⬅️Orqaga",callback_data="back_to_service_menu"))
     await call.message.edit_text(text=f"<b>{service} mavzusini yuboring</b>",reply_markup=markup)
     if service == "Referat":
-        await ServicesStates.Referal.set()
+        await ServicesStates.Referat.set()
     elif service == "Mustaqil ish":
         await ServicesStates.Mustaqil.set()
     elif service == "Slaydlar":
@@ -32,46 +37,98 @@ async def select_service(call: types.CallbackQuery):
         await ServicesStates.Bayon.set()  
         
 
-@dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Referal)
+@dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Referat)
 async def handle_referal_message(message: types.Message, state: FSMContext):
     # Handle message for the 'Referal' state
-    user_input = message.text
-    await message.answer(f"Siz {user_input} haqida ma'lumot berdingiz.")
+    prompt = message.text
+    # Example usage
+    history_data = [
+        {
+            "role": "user",
+            "content": f"{prompt}"
+        }
+    ]
+    r = get_response_from_server(history_data)
+    r = r['response']
+    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
     await state.finish()  
 
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Mustaqil)
 async def handle_mustaqil_message(message: types.Message, state: FSMContext):
-    user_input = message.text
-    await message.answer(f"Siz {user_input} haqida mustaqil ma'lumot berdingiz.")
-    await state.finish()
+    prompt = message.text
+    # Example usage
+    history_data = [
+        {
+            "role": "user",
+            "content": f"{prompt}"
+        }
+    ]
+    r = get_response_from_server(history_data)
+    r = r['response']
+    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
+    await state.finish() 
 
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Slaydlar)
 async def handle_slaydlar_message(message: types.Message, state: FSMContext):
-    # Handle message for the 'Slaydlar' state
-    user_input = message.text
-    await message.answer(f"Siz {user_input} haqida slaydlar yubordingiz.")
-    await state.finish()
+    prompt = message.text
+    # Example usage
+    history_data = [
+        {
+            "role": "user",
+            "content": f"{prompt}"
+        }
+    ]
+    r = get_response_from_server(history_data)
+    r = r['response']
+    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
+    await state.finish() 
 
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Insho)
 async def handle_insho_message(message: types.Message, state: FSMContext):
     # Handle message for the 'Insho' state
-    user_input = message.text
-    await message.answer(f"Siz {user_input} haqida insho yubordingiz.")
-    await state.finish()
+    prompt = message.text
+    # Example usage
+    history_data = [
+        {
+            "role": "user",
+            "content": f"{prompt}"
+        }
+    ]
+    r = get_response_from_server(history_data)
+    r = r['response']
+    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
+    await state.finish() 
 
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Tabrik)
 async def handle_tabrik_message(message: types.Message, state: FSMContext):
     # Handle message for the 'Tabrik' state
-    user_input = message.text
-    await message.answer(f"Siz {user_input} haqida tabrik yubordingiz.")
-    await state.finish()
+    prompt = message.text
+    # Example usage
+    history_data = [
+        {
+            "role": "user",
+            "content": f"{prompt}"
+        }
+    ]
+    r = get_response_from_server(history_data)
+    r = r['response']
+    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
+    await state.finish() 
 
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Bayon)
 async def handle_bayon_message(message: types.Message, state: FSMContext):
-    # Handle message for the 'Bayon' state
-    user_input = message.text
-    await message.answer(f"Siz {user_input} haqida bayon yubordingiz.")
-
+    prompt = message.text
+    # Example usage
+    history_data = [
+        {
+            "role": "user",
+            "content": f"{prompt}"
+        }
+    ]
+    r = get_response_from_server(history_data)
+    r = r['response']
+    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
+    await state.finish() 
 
 
 
