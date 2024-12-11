@@ -705,12 +705,3 @@ async def back_to_main_menu_method(call: types.CallbackQuery,state: FSMContext):
     await call.answer(cache_time=1)
     await call.message.edit_text(text="👨‍💻 Bosh menyu", reply_markup=main_menu_for_super_admin)
     await state.finish()
-
-from typing import List
-
-# ======== Media GRoup Handler ===============
-@dp.message_handler(commands=['yordam'])
-async def salom(message: types.Message):
-    message_idd = await bot.send_message(chat_id='@urguttoday',text='.')
-    time.sleep(2)
-    await bot.delete_message(chat_id='@urguttoday',message_id=message_idd.message_id)

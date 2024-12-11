@@ -69,5 +69,5 @@ def services_keyboards__board():
     markup = InlineKeyboardMarkup(row_width=2)
     services = data['services']
     for k,v in services.items():
-        markup.insert(InlineKeyboardButton(text=f"{k}",callback_data=f"services:{v}"))
+        markup.insert(InlineKeyboardButton(text=f"{k}",callback_data=f"select_service:{k}"))
     return markup
