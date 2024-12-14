@@ -79,7 +79,7 @@ class Database:
         return await self.execute(sql, *parameters, fetch=True)
     async def add_user(
         self, name, username, user_id, created_date, updated_date, balance=0, number=None, 
-        ref_father=None, register=False, is_premium=False, is_blocked=False
+        ref_father=None, register=False,is_premium=False, is_blocked=False
     ):
         # Bot foydalanuvchilarni kiritishni cheklash
         if username and (username[-3:].lower() == "bot"):
@@ -94,19 +94,30 @@ class Database:
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             RETURNING *
         """
-        # Ma'lumotlarni bazaga qo‘shish
         return await self.execute(
             sql, name, username, user_id, balance, number, ref_father, register, 
             is_premium, is_blocked, created_date, updated_date, fetchrow=True
         )
 
-
+    async def update_user_univer(self, univer, user_id):
+                sql = "UPDATE users_user SET univer=$1 WHERE user_id=$2"
+                return await self.execute(sql, univer,user_id, execute=True)
+    
+    async def update_user_language(self, language, user_id):
+            sql = "UPDATE users_user SET language=$1 WHERE user_id=$2"
+            return await self.execute(sql, language,user_id, execute=True)
+    
+    async def update_user_author(self, author, user_id):
+            sql = "UPDATE users_user SET author=$1 WHERE user_id=$2"
+            return await self.execute(sql, author,user_id, execute=True)
+    
 
     async def count_referred_users(self, ref_father):
         sql = """
             SELECT COUNT(*) FROM users_user WHERE ref_father = $1
         """
         return await self.execute(sql, ref_father, fetchval=True)
+    
     async def get_top_users(self):
         sql = """
             SELECT name, username, balance
