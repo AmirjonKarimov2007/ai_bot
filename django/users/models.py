@@ -5,6 +5,19 @@ from datetime import timedelta
 class User(models.Model):
     name = models.CharField(verbose_name='Fullname', max_length=100)
     username = models.CharField(verbose_name='Username', max_length=200, null=True,blank=True)
+    author = models.CharField(verbose_name='Mualif', max_length=200, null=True,blank=True)
+    univer = models.CharField(verbose_name='Universitet', max_length=200, null=True,blank=True)
+    LANGUAGE_CHOICES = [
+        ('eng', 'English'),
+        ('uzb', 'Uzbek'),
+        ('rus', 'Russian'),
+    ]
+    
+    language = models.CharField(
+        max_length=3,
+        choices=LANGUAGE_CHOICES,
+        default='eng',
+    )
     user_id = models.BigIntegerField(verbose_name='Telegram_id', unique=True)
     balance = models.BigIntegerField(verbose_name='Balance',default=0,null=True,blank=True)
     number = models.BigIntegerField(verbose_name="Telefon raqami",null=True,blank=True)

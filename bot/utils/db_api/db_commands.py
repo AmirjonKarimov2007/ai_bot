@@ -79,7 +79,7 @@ class Database:
         return await self.execute(sql, *parameters, fetch=True)
     async def add_user(
         self, name, username, user_id, created_date, updated_date, balance=0, number=None, 
-        ref_father=None, register=False,is_premium=False, is_blocked=False
+        ref_father=None, register=False, is_premium=False, is_blocked=False, language='uzb'
     ):
         # Bot foydalanuvchilarni kiritishni cheklash
         if username and (username[-3:].lower() == "bot"):
@@ -89,14 +89,14 @@ class Database:
         sql = """
             INSERT INTO users_user (
                 name, username, user_id, balance, number, ref_father, register, 
-                is_premium, is_blocked, created_date, updated_date
+                is_premium, is_blocked, language, created_date, updated_date
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
         """
         return await self.execute(
             sql, name, username, user_id, balance, number, ref_father, register, 
-            is_premium, is_blocked, created_date, updated_date, fetchrow=True
+            is_premium, is_blocked, language, created_date, updated_date, fetchrow=True
         )
 
     async def update_user_univer(self, univer, user_id):
