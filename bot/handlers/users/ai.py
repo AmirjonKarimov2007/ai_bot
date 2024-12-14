@@ -10,7 +10,7 @@ from states.ai_state import ServicesStates
 from keyboards.inline.main_menu_super_admin import services_keyboards__board
 from aiogram.types import ContentTypes
 from utils.ai_api import get_response_from_server
-
+from keyboards.inline.main_keyboard import success_keyboards
 
 
 
@@ -29,7 +29,8 @@ async def text_generator(type,user_id):
         caption += f"📃Mavzu: <b>{mavzu}</b>\n"
         caption += f"🏫Institut va kafedra: <b>{univer}</b>\n"
         caption += f"👤Muallif: <b>{name}</b>\n"
-        caption += f"📰Sahifalar soni: <b>{min}dan – {max}gacha</b>\n\n"
+        caption += f"📰Sahifalar soni: <b>{min}dan – {max}gacha</b>\n"
+        caption += f"👅Tili: <b>{language}</b>\n\n"
 
     return caption
 
@@ -73,13 +74,10 @@ async def check_info(user_id):
 
 import os
 
-
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Referat)
 async def handle_referal_message(message: types.Message, state: FSMContext):
-    markup = InlineKeyboardMarkup(row_width=3)
-    markup.insert(InlineKeyboardButton(text="✅Tayyorlash",callback_data="success:referat"))
-    markup.insert(InlineKeyboardButton(text="🚫Rad qilish",callback_data="cancel:referat"))
-    markup.insert(InlineKeyboardButton(text="✏️O'zgartirish",callback_data="edit:referat"))
+    service = "REFERAT"
+    markup = success_keyboards(service)
     mavzu = message.text
     user_id = str(message.from_user.id)  
     if os.path.exists('user_info.json'):
@@ -102,7 +100,7 @@ async def handle_referal_message(message: types.Message, state: FSMContext):
     
         if status==True:
             caption = await text_generator(
-                type="REFERAT",
+                type=service,
                 user_id=message.from_user.id,
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
@@ -132,17 +130,15 @@ async def handle_referal_author__message(message: types.Message, state: FSMConte
     text = """Muallif ism-familiyasi, guruhi va hokazolarni to'liq kiriting.
 
 📋Namuna: Isroilov Ismoiljon Muhiddin o'g'li, 4-kurs, 21.36-guruh"""
-    markup = InlineKeyboardMarkup(row_width=3)
-    markup.insert(InlineKeyboardButton(text="✅Tayyorlash",callback_data="success:referat"))
-    markup.insert(InlineKeyboardButton(text="🚫Rad qilish",callback_data="cancel:referat"))
-    markup.insert(InlineKeyboardButton(text="✏️O'zgartirish",callback_data="edit_service:referat"))
+    service = "REFERAT"
+    markup = success_keyboards(service)
     try:
         await db.update_user_univer(univer=univer,user_id=int(message.from_user.id))
         status = await check_info(user_id=message.from_user.id)
     
         if status==True:
             caption = await text_generator(
-                type="REFERAT",
+                type=service,
                 user_id=message.from_user.id,
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
@@ -157,21 +153,18 @@ async def handle_referal_author__message(message: types.Message, state: FSMConte
         await state.finish()
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:137:error:{e}")
 
-
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.SUCCESS_SERVICE)
 async def handle_referal_author_NAME_message(message: types.Message, state: FSMContext):
     author = message.text
-    markup = InlineKeyboardMarkup(row_width=3)
-    markup.insert(InlineKeyboardButton(text="✅Tayyorlash",callback_data="success:referat"))
-    markup.insert(InlineKeyboardButton(text="🚫Rad qilish",callback_data="cancel:referat"))
-    markup.insert(InlineKeyboardButton(text="✏️O'zgartirish",callback_data="edit:referat"))
+    service = "REFERAT"
+    markup = success_keyboards(service)
     try:
         await db.update_user_author(author=author,user_id=int(message.from_user.id))
         status = await check_info(user_id=message.from_user.id)
     
         if status==True:
             caption = await text_generator(
-                type="REFERAT",
+                type=service,
                 user_id=message.from_user.id,
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
@@ -189,6 +182,15 @@ async def handle_referal_author_NAME_message(message: types.Message, state: FSMC
 
 
 
+
+
+
+
+
+
+
+
+
 @dp.callback_query_handler(IsUser(),text_contains="cancel:")
 async def referal_cancel(call: types.CallbackQuery):
     data = call.data.rsplit(":")
@@ -197,13 +199,39 @@ async def referal_cancel(call: types.CallbackQuery):
 Yangi {service} yaratish uchun quyidagi ✅Foydalanish tugmasini bosing!"""
     await call.message.edit_text(text=f"<b>{text}</b>")
 
-@dp.callback_query_handler(IsUser(),text_contains="edit_service:")
+
+from keyboards.inline.main_keyboard import editable_keyboards
+@dp.callback_query_handler(IsUser(),text_contains="edit:",state='*')
 async def referal_cancel(call: types.CallbackQuery):
     data = call.data.rsplit(":")
     service = data[1]
-    text = """"""
+    caption = await text_generator(type=f"{service}",user_id=call.from_user.id)
+    caption += "<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
+    markup = editable_keyboards(service=service)
+    await call.message.edit_text(text=caption,reply_markup=markup)
 
 
+
+
+@dp.callback_query_handler(IsUser(),text="back_to_REFERAT",state='*')
+async def handle_referal_success_message(call: types.CallbackQuery):
+    service = "REFERAT"
+    markup = success_keyboards(service)
+    try:
+        status = await check_info(user_id=call.from_user.id)
+        if status==True:
+            caption = await text_generator(
+                type=service,
+                user_id=call.from_user.id,
+            )
+            caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
+            caption += f"• Biror ma'lumotni o'zgartirish uchun, '✏️O'zgartirish'.\n"
+            caption += f"• Bekor qilish uchun, '🚫Rad qilish'."
+            await call.message.edit_text(text=caption,reply_markup=markup)
+        else:
+            print('salom')
+    except Exception as e:
+        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
 
 
 

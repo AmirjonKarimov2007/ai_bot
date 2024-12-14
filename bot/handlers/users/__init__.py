@@ -6,4 +6,5 @@ from . import send
 from . import send_referal
 from . import admin
 from . import ai
+from . import edit
 from . import echo
