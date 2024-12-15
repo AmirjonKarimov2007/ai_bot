@@ -259,83 +259,137 @@ async def handle_referal_success_message(call: types.CallbackQuery):
 
 
 
+import os
+import json
+from docx import Document
+from docx.shared import Pt
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+import asyncio
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 
-@dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Mustaqil)
-async def handle_mustaqil_message(message: types.Message, state: FSMContext):
-    prompt = message.text
-    # Example usage
+
+
+
+@dp.callback_query_handler(IsUser(), text_contains="success:", state="*")
+async def success_handler(call: types.CallbackQuery):
+    await call.answer(cache_time=1)
+    user_id = call.from_user.id
+    data = call.data.rsplit(":")
+    service = data[1]
+
+    # User ma'lumotlari
+    with open('user_info.json', 'r') as file:
+        data = json.load(file)
+    mavzu = data[str(user_id)]['mavzu']
+    user = await db.select_user(user_id=int(user_id))
+    language = user[0]['language']
+
+    # Word hujjatini yaratish
+    document = Document()
+
+    # Shriftni o'zgartirish uchun funksiyani yaratamiz
+    def set_font_style(paragraph, font_name="Times New Roman", font_size=14):
+        # Har bir "run" (matn segmenti)ni ko'rib chiqamiz
+        for run in paragraph.runs:
+            run.font.name = font_name
+            run.font.size = Pt(font_size)
+            
+            # XML elementiga murojaat qilib shrift nomini o'rnatish
+            r = run._element
+            rPr = r.get_or_add_rPr()  # Agar rPr mavjud bo'lmasa, yangi rPr yaratish
+            rFonts = OxmlElement('w:rFonts')  # w:rFonts XML elementi
+            rFonts.set(qn('w:ascii'), font_name)
+            rFonts.set(qn('w:hAnsi'), font_name)
+            rFonts.set(qn('w:eastAsia'), font_name)  # Shriftni o'rnatish uchun eastAsia qo'shish
+            rPr.append(rFonts)  # rFonts ni rPr ga qo'shish
+
+    # BIRINCHI SAHIFA formatlash
+    document.add_paragraph().add_run().bold = True  # Bo'sh qator
+    p1 = document.add_paragraph("O'ZBEKISTON RESPUBLIKASI OLIY TA'LIM FAN VA\n"
+                                "INNOVATSIYA VAZIRLIGI\n"
+                                "FARG'ONA DAVLAT UNIVERSITETI\n"
+                                "IQTISODIYOT KAFEDRASI")
+    p1.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    set_font_style(p1, font_size=14)
+
+    document.add_paragraph().add_run().bold = True  # Bo'sh qator
+    title = document.add_paragraph("MUSTAQIL ISH")
+    title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    title.runs[0].bold = True
+    set_font_style(title, font_size=14)
+
+    document.add_paragraph().add_run().bold = True  # Bo'sh qator
+    p2 = document.add_paragraph(f"Mavzu: {mavzu}")
+    p2.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    set_font_style(p2, font_size=14)
+
+    p3 = document.add_paragraph(f"Student: {user[0]['author']} {user[0]['univer']}")
+    p3.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    set_font_style(p3, font_size=14)
+
+    document.add_paragraph().add_run().bold = True  # Bo'sh qator
+    footer = document.add_paragraph("2024-yil")
+    footer.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    set_font_style(footer, font_size=14)
+
+    document.add_page_break()  # Keyingi sahifaga o'tish
+
+    # MAVZULARNI KIRITISH
     history_data = [
         {
             "role": "user",
-            "content": f"{prompt}"
+            "content": f"{mavzu} bu mavzuda {service} uchun 3ta mavzu yozib ber."
         }
     ]
-    r = get_response_from_server(history_data)
-    r = r['response']
-    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
-    await state.finish() 
+    response = get_response_from_server(history_data)
+    theme = response['response']
+    reja_list = theme.split('\n')
 
-@dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Slaydlar)
-async def handle_slaydlar_message(message: types.Message, state: FSMContext):
-    prompt = message.text
-    # Example usage
-    history_data = [
-        {
-            "role": "user",
-            "content": f"{prompt}"
-        }
-    ]
-    r = get_response_from_server(history_data)
-    r = r['response']
-    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
-    await state.finish() 
+    # Asinxron javoblarni olish
+    tasks = []
+    for reja in reja_list:
+        # Har bir reja uchun serverdan matn olish
+        history_data = [
+            {
+                "role": "user",
+                "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. {language} tilida."
+            }
+        ]
+        tasks.append(get_response_from_server(history_data))
 
-@dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Insho)
-async def handle_insho_message(message: types.Message, state: FSMContext):
-    # Handle message for the 'Insho' state
-    prompt = message.text
-    # Example usage
-    history_data = [
-        {
-            "role": "user",
-            "content": f"{prompt}"
-        }
-    ]
-    r = get_response_from_server(history_data)
-    r = r['response']
-    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
-    await state.finish() 
+    # Hammasini kutish va natijalarni ishlash
+    responses = await asyncio.gather(*tasks)
 
-@dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Tabrik)
-async def handle_tabrik_message(message: types.Message, state: FSMContext):
-    # Handle message for the 'Tabrik' state
-    prompt = message.text
-    # Example usage
-    history_data = [
-        {
-            "role": "user",
-            "content": f"{prompt}"
-        }
-    ]
-    r = get_response_from_server(history_data)
-    r = r['response']
-    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
-    await state.finish() 
+    for idx, reja in enumerate(reja_list):
+        # Har bir mavzuni yangi sahifada qo'shish
+        heading = document.add_heading(reja.strip(), level=2)
+        set_font_style(heading, font_size=14)
 
-@dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Bayon)
-async def handle_bayon_message(message: types.Message, state: FSMContext):
-    prompt = message.text
-    # Example usage
-    history_data = [
-        {
-            "role": "user",
-            "content": f"{prompt}"
-        }
-    ]
-    r = get_response_from_server(history_data)
-    r = r['response']
-    await message.answer(f"{r}",parse_mode=types.ParseMode.MARKDOWN)
-    await state.finish() 
+        paragraph = document.add_paragraph(responses[idx]['response'])
+        set_font_style(paragraph, font_size=14)
+
+        document.add_page_break()  # Yangi sahifaga o'tish
+
+    # Word faylini saqlash
+    filename = f"user_{user_id}_mustaqil_ish.docx"
+    document.save(filename)
+
+    # Faylni foydalanuvchiga yuborish
+    with open(filename, 'rb') as doc_file:
+        await call.message.answer_document(doc_file)
+
+    os.remove(filename)  # Faylni o'chirish
+
+
+
+
+
+
+
+
+
+
 
 
 
