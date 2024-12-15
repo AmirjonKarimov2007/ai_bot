@@ -149,7 +149,7 @@ async def change_theme(call: types.CallbackQuery,state:FSMContext):
     
 
 
-@dp.callback_query_handler(IsUser(),text_contains="edit_language",state='*',)
+@dp.callback_query_handler(IsUser(),text_contains="edit_language",state='*')
 async def edit_language(call: types.CallbackQuery):
     data = call.data.rsplit(":")
 
@@ -172,3 +172,61 @@ async def edit_language(call: types.CallbackQuery):
         await call.message.edit_text(text=caption,reply_markup=markup)
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:137:error:{e}")
 
+
+
+@dp.callback_query_handler(IsUser(),text_contains="add_page:",state='*')
+async def add_page(call: types.CallbackQuery):
+    call_info = call.data.rsplit(":")
+    service = call_info[1]
+    markup = editable_keyboards(service=service)
+    with open ('user_info.json','r') as file:
+        data = json.load(file)
+    min = data[str(call.from_user.id)]['min']
+    max = data[str(call.from_user.id)]['max']
+    if max==25 and min==20:
+        await bot.answer_callback_query(callback_query_id=call.id,text="Sahifalar soni 25-20 dan ko'p bo'lmaydi❗️",show_alert=True)
+    elif max<25 and min<20:
+        data[str(call.from_user.id)]['min']+=5
+        data[str(call.from_user.id)]['max']+=5
+        await bot.answer_callback_query(callback_query_id=call.id,text=f"✅Sahifalar soni 5ga ochirildi")
+        with open('user_info.json','w')as file:
+            json.dump(data,file,indent=4)
+        caption = await text_generator(type=service,user_id=call.from_user.id)
+        caption+=f"<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
+        await call.message.edit_text(text=caption,reply_markup=markup)
+
+@dp.callback_query_handler(IsUser(),text_contains="delete_page:",state='*')
+async def add_page(call: types.CallbackQuery):
+    call_info = call.data.rsplit(":")
+    service = call_info[1]
+    markup = editable_keyboards(service=service)
+    with open ('user_info.json','r') as file:
+        data = json.load(file)
+    min = data[str(call.from_user.id)]['min']
+    max = data[str(call.from_user.id)]['max']
+    if max==10 and min==5:
+        await bot.answer_callback_query(callback_query_id=call.id,text="Sahifalar soni 5 - 10 dan ko'p bo'lmaydi❗️",show_alert=True)
+    elif max>10 and min>5:
+        data[str(call.from_user.id)]['min']-=5
+        data[str(call.from_user.id)]['max']-=5
+        await bot.answer_callback_query(callback_query_id=call.id,text=f"Sahifalar soni 5ga kamaydi 🚫")
+        with open('user_info.json','w')as file:
+            json.dump(data,file,indent=4)
+        caption = await text_generator(type=service,user_id=call.from_user.id)
+        caption+=f"<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
+        await call.message.edit_text(text=caption,reply_markup=markup)
+
+
+
+
+@dp.callback_query_handler(IsUser(),text_contains="see_page:",state='*')
+async def add_page(call: types.CallbackQuery):
+    call_info = call.data.rsplit(":")
+    service = call_info[1]
+    markup = editable_keyboards(service=service)
+    with open ('user_info.json','r') as file:
+        data = json.load(file)
+    min = data[str(call.from_user.id)]['min']
+    max = data[str(call.from_user.id)]['max']
+    await bot.answer_callback_query(callback_query_id=call.id,text=f"Sahifalar soni {min} dan {max} gacha",show_alert=True)
+    
