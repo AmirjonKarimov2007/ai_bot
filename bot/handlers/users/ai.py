@@ -267,9 +267,9 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 import asyncio
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+from docx_generator import word_generator
 
-
-
+from aiogram.types import InputFile
 
 @dp.callback_query_handler(IsUser(), text_contains="success:", state="*")
 async def success_handler(call: types.CallbackQuery):
@@ -285,12 +285,14 @@ async def success_handler(call: types.CallbackQuery):
     max = data[str(user_id)]['max']
     page_count = {
         "10":0,
-        "15":1,
-        "20":2,
-        "25":3,
+        "15":2,
+        "20":3,
+        "25":4,
     }
     user = await db.select_user(user_id=int(user_id))
     language = user[0]['language']
+    univer = user[0]['univer']
+    author = user[0]['author']
 
 
     theme_data = [
@@ -306,23 +308,21 @@ async def success_handler(call: types.CallbackQuery):
     theme = response['response']
 
     reja_list = theme.split('\n')
-
-    
-    print(reja_list)
-
+    malumot = {}
     
     for reja in reja_list:
         history_data = [
                 {
                     "role": "user",
-                    "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. {language} tilida.faqat kerakli malumotlarn ber.o'zingdan keladigan raxmat albatta va shunga o'xshash so'zlarni yuborma.qancha uzun text yubora olsang shunga uzun malumot ber."
+                    "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. {language} tilida.faqat kerakli malumotlarn ber.o'zingdan keladigan raxmat albatta va shunga o'xshash so'zlarni yuborma.qancha uzun text yubora olsang shunga uzun malumot ber.Iltimos, javoblarni faqat oddiy matn shaklida yuboring, markdown yoki boshqa formatlash elementlaridan foydalanmang."
                 }
             ]
+        
         if page_count[str(max)]==0:
             print(reja)
             text = get_response_from_server(history_data)
             text = text['response']
-            await bot.send_chat_action(chat_id=call.from_user.id,action="typing")
+            malumot[reja]=text
             print('usha narsa')
             history_data.append(
                 {
@@ -330,21 +330,24 @@ async def success_handler(call: types.CallbackQuery):
                     "content":text
                 }
             )
-            await call.message.answer(text=text,parse_mode=types.ParseMode.MARKDOWN)
+        
         else:
-            for list in range(page_count[str(max)]):
+            for list in range(int(page_count[str(max)])):
+                print(reja)
                 text = get_response_from_server(history_data)
                 text = text['response']
-                await bot.send_chat_action(chat_id=call.from_user.id,action="typing")
-
+                malumot[reja]=text
+                print('usha narsa')
                 history_data.append(
                     {
                         "role":"user",
                         "content":text
                     }
                 )
-                await call.message.answer(text=text,parse_mode=types.ParseMode.MARKDOWN)
 
+    await bot.send_chat_action(chat_id=call.from_user.id,action="typing")
+    await word_generator(type=service,mavzu=mavzu,univer=univer,name=author,rejalar=reja_list,theme_text=malumot,user_id=str(user_id))
+    await call.message.answer_document(document=InputFile(f"{user_id}.docx"))
 
 
 
