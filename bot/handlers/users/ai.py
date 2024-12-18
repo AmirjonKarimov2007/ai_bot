@@ -296,7 +296,7 @@ async def success_handler(call: types.CallbackQuery):
     theme_data = [
         {
             "role": "user",
-            "content": f"{mavzu} bu mavzusida {service} uchun 3ta mavzu yozib ber.keyin sen menga faqat rejani textini qaytar boshqa hech narsa yuborma."
+            "content": f"meni seni telegram botga ulaganman.ortiqcha hech narsa demasdan faqat quyidagi promptni bajar,albatta,raxmat,umid qilaman degan textlarsiz, shu  {mavzu} mavzu bo'yicha , {service} uchun 3ta mavzu yozib ber."
         }
     ]
     response = get_response_from_server(history=theme_data)
@@ -306,22 +306,24 @@ async def success_handler(call: types.CallbackQuery):
     theme = response['response']
 
     reja_list = theme.split('\n')
-    n = 10
+
     
-    await bot.send_chat_action(chat_id=call.from_user.id,action="typing")
+    print(reja_list)
 
-
-    history_data = [
-            {
-                "role": "user",
-                "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. {language} tilida."
-            }
-        ]
     
     for reja in reja_list:
-        for list in range(page_count[max]):
+        history_data = [
+                {
+                    "role": "user",
+                    "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. {language} tilida.faqat kerakli malumotlarn ber.o'zingdan keladigan raxmat albatta va shunga o'xshash so'zlarni yuborma.qancha uzun text yubora olsang shunga uzun malumot ber."
+                }
+            ]
+        if page_count[str(max)]==0:
+            print(reja)
             text = get_response_from_server(history_data)
             text = text['response']
+            await bot.send_chat_action(chat_id=call.from_user.id,action="typing")
+            print('usha narsa')
             history_data.append(
                 {
                     "role":"user",
@@ -329,6 +331,19 @@ async def success_handler(call: types.CallbackQuery):
                 }
             )
             await call.message.answer(text=text,parse_mode=types.ParseMode.MARKDOWN)
+        else:
+            for list in range(page_count[str(max)]):
+                text = get_response_from_server(history_data)
+                text = text['response']
+                await bot.send_chat_action(chat_id=call.from_user.id,action="typing")
+
+                history_data.append(
+                    {
+                        "role":"user",
+                        "content":text
+                    }
+                )
+                await call.message.answer(text=text,parse_mode=types.ParseMode.MARKDOWN)
 
 
 

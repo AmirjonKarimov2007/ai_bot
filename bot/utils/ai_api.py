@@ -13,7 +13,8 @@ def get_response_from_server(history):
     }
 
     response = requests.post(url, headers=headers, data=json.dumps(data))
-        
+    
+    
     if response.status_code == 200:
         return response.json()
     else:
