@@ -97,8 +97,9 @@ async def phone_number(message: types.Message,state: FSMContext):
         user = await db.is_user(user_id=int(message.from_user.id))
         if user:
             reffather_id = user[0]['ref_father']
+            profile = await db.select_user(user_id=int(message.from_user.id))
             
-            if reffather_id and await db.is_user(user_id=int(reffather_id)):
+            if reffather_id and await db.is_user(user_id=int(reffather_id)) and not profile[0]['number']:
                 if message.from_user.is_premium:
                     try:
                         await db.update_user_number(number=int(phone_num), user_id=int(message.from_user.id),register=True)
