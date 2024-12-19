@@ -90,12 +90,14 @@ async def handle_referal_message(message: types.Message, state: FSMContext):
             user_info = json.load(file)
     else:
         user_info = {}
-
-    user_info[user_id] = {
-        "mavzu": mavzu,
-        "min": 5,  
-        "max": 10 
-    }
+    if "min" and "max" in user_info[user_id]:
+        user_info[user_id]["mavzu"]=mavzu
+    else:
+        user_info[user_id] = {
+            "mavzu": mavzu,
+            "min": 5,  
+            "max": 10 
+        }
 
     with open('user_info.json', "w", encoding="utf-8") as file:
         json.dump(user_info, file, indent=4, ensure_ascii=False)
@@ -315,12 +317,11 @@ async def success_handler(call: types.CallbackQuery):
     malumot = {}
     n = 0
     for reja in reja_list:
-        print(reja)
         n+=1
         history_data = [
             {
                 "role": "user",
-                "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. {language} tilida. Faqat kerakli ma'lumotlarni ber. O'zingdan keladigan raxmat albatta va shunga o'xshash so'zlarni yuborma. Qancha uzun text yubora olsang, shuncha uzun ma'lumot ber. Iltimos, javoblarni faqat oddiy matn shaklida yuboring, markdown yoki boshqa formatlash elementlaridan foydalanmang."
+                "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. maximal qancha uzun yoza olsang shuncha uzun yozib ber.{language} tilida. Faqat kerakli ma'lumotlarni ber. O'zingdan keladigan raxmat albatta va shunga o'xshash so'zlarni yuborma. Qancha uzun text yubora olsang, shuncha uzun ma'lumot ber. Iltimos, javoblarni faqat oddiy matn shaklida yuboring, markdown yoki boshqa formatlash elementlaridan foydalanmang."
             }
         ]
 
@@ -330,18 +331,22 @@ async def success_handler(call: types.CallbackQuery):
             malumot[reja] = text
             history_data.append({"role": "user", "content": text})
         else:
+            print(reja)
             for _ in range(page_count[str(max_pages)]):
                 text = get_response_from_server(history_data)
                 text = text['response']
-                malumot[reja] = text
-                history_data.append({"role": "user", "content": text})
+                if reja in malumot:
+                    malumot[reja].append(text)  
+                else:
+                    malumot[reja] = [text] 
+
     
         filled = n + 1
         progress = "⬛" * filled + "⬜" * (5 - filled)
         if msg.text != progress:
             await msg.edit_text(progress)    
 
-    await word_generator(
+    file_stream = await word_generator(
         type=service,
         mavzu=mavzu,
         univer=univer,
@@ -353,7 +358,7 @@ async def success_handler(call: types.CallbackQuery):
     await msg.edit_text('⬛️⬛️⬛️⬛️⬛️')
     await asyncio.sleep(0.5)  
     await msg.delete()
-    await call.message.answer_document(document=InputFile(f"{user_id}.docx"))
+    await call.message.answer_document(InputFile(file_stream, filename=f"{mavzu}.docx"))
 
 
 
@@ -368,5 +373,6 @@ async def success_handler(call: types.CallbackQuery):
 @dp.callback_query_handler(IsUser(), text="back_to_service_menu", state="*")
 async def back_to_main_menu_method(call: types.CallbackQuery,state: FSMContext):
     await call.answer(cache_time=1)
-    await call.message.edit_text(text="<b>Qaysi Xizmatdan Foydalanmoqchisiz:</b>", reply_markup=services_keyboards__board())
+    if call.message.text != "Qaysi Xizmatdan Foydalanmoqchisiz:":
+        await call.message.edit_text(text="<b>Qaysi Xizmatdan Foydalanmoqchisiz:</b>", reply_markup=services_keyboards__board())
     await state.finish()
