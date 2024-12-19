@@ -286,14 +286,6 @@ async def success_handler(call: types.CallbackQuery):
     data = call.data.rsplit(":")
     service = data[1]
 
-    loading_steps_initial1 = [
-        "⬛⬜⬜⬜⬜",
-        "⬛⬛⬜⬜⬜",
-        "⬛⬛⬛⬜⬜",
-        "⬛⬛⬛⬛⬜",
-        "⬛⬛⬛⬛⬛",
-    ]
-
     # User ma'lumotlari
     with open('user_info.json', 'r') as file:
         data = json.load(file)
@@ -343,7 +335,7 @@ async def success_handler(call: types.CallbackQuery):
                 text = text['response']
                 malumot[reja] = text
                 history_data.append({"role": "user", "content": text})
-        print('usha narsa')
+    
         filled = n + 1
         progress = "⬛" * filled + "⬜" * (5 - filled)
         if msg.text != progress:
