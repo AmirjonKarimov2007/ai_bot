@@ -74,6 +74,11 @@ async def check_info(user_id):
 
 import os
 
+
+
+
+
+
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Referat)
 async def handle_referal_message(message: types.Message, state: FSMContext):
     service = "REFERAT"
@@ -271,29 +276,39 @@ from docx_generator import word_generator
 
 from aiogram.types import InputFile
 
+
 @dp.callback_query_handler(IsUser(), text_contains="success:", state="*")
 async def success_handler(call: types.CallbackQuery):
     await call.answer(cache_time=1)
+    msg = await call.message.edit_text('⬛⬜⬜⬜⬜')
+
     user_id = call.from_user.id
     data = call.data.rsplit(":")
     service = data[1]
+
+    loading_steps_initial1 = [
+        "⬛⬜⬜⬜⬜",
+        "⬛⬛⬜⬜⬜",
+        "⬛⬛⬛⬜⬜",
+        "⬛⬛⬛⬛⬜",
+        "⬛⬛⬛⬛⬛",
+    ]
 
     # User ma'lumotlari
     with open('user_info.json', 'r') as file:
         data = json.load(file)
     mavzu = data[str(user_id)]['mavzu']
-    max = data[str(user_id)]['max']
+    max_pages = data[str(user_id)]['max']
     page_count = {
-        "10":0,
-        "15":2,
-        "20":3,
-        "25":4,
+        "10": 0,
+        "15": 2,
+        "20": 3,
+        "25": 4,
     }
     user = await db.select_user(user_id=int(user_id))
     language = user[0]['language']
     univer = user[0]['univer']
     author = user[0]['author']
-
 
     theme_data = [
         {
@@ -303,56 +318,50 @@ async def success_handler(call: types.CallbackQuery):
     ]
     response = get_response_from_server(history=theme_data)
 
-
-
     theme = response['response']
-
     reja_list = theme.split('\n')
     malumot = {}
-    
+    n = 0
     for reja in reja_list:
+        print(reja)
+        n+=1
         history_data = [
-                {
-                    "role": "user",
-                    "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. {language} tilida.faqat kerakli malumotlarn ber.o'zingdan keladigan raxmat albatta va shunga o'xshash so'zlarni yuborma.qancha uzun text yubora olsang shunga uzun malumot ber.Iltimos, javoblarni faqat oddiy matn shaklida yuboring, markdown yoki boshqa formatlash elementlaridan foydalanmang."
-                }
-            ]
-        
-        if page_count[str(max)]==0:
-            print(reja)
+            {
+                "role": "user",
+                "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. {language} tilida. Faqat kerakli ma'lumotlarni ber. O'zingdan keladigan raxmat albatta va shunga o'xshash so'zlarni yuborma. Qancha uzun text yubora olsang, shuncha uzun ma'lumot ber. Iltimos, javoblarni faqat oddiy matn shaklida yuboring, markdown yoki boshqa formatlash elementlaridan foydalanmang."
+            }
+        ]
+
+        if page_count[str(max_pages)] == 0:
             text = get_response_from_server(history_data)
             text = text['response']
-            malumot[reja]=text
-            print('usha narsa')
-            history_data.append(
-                {
-                    "role":"user",
-                    "content":text
-                }
-            )
-        
+            malumot[reja] = text
+            history_data.append({"role": "user", "content": text})
         else:
-            for list in range(int(page_count[str(max)])):
-                print(reja)
+            for _ in range(page_count[str(max_pages)]):
                 text = get_response_from_server(history_data)
                 text = text['response']
-                malumot[reja]=text
-                print('usha narsa')
-                history_data.append(
-                    {
-                        "role":"user",
-                        "content":text
-                    }
-                )
+                malumot[reja] = text
+                history_data.append({"role": "user", "content": text})
+        print('usha narsa')
+        filled = n + 1
+        progress = "⬛" * filled + "⬜" * (5 - filled)
+        if msg.text != progress:
+            await msg.edit_text(progress)    
 
-    await bot.send_chat_action(chat_id=call.from_user.id,action="typing")
-    await word_generator(type=service,mavzu=mavzu,univer=univer,name=author,rejalar=reja_list,theme_text=malumot,user_id=str(user_id))
+    await word_generator(
+        type=service,
+        mavzu=mavzu,
+        univer=univer,
+        name=author,
+        rejalar=reja_list,
+        theme_text=malumot,
+        user_id=str(user_id)
+    )
+    await msg.edit_text('⬛️⬛️⬛️⬛️⬛️')
+    await asyncio.sleep(0.5)  
+    await msg.delete()
     await call.message.answer_document(document=InputFile(f"{user_id}.docx"))
-
-
-
-
-
 
 
 
