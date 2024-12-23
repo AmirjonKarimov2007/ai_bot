@@ -90,7 +90,7 @@ async def handle_referal_message(message: types.Message, state: FSMContext):
             user_info = json.load(file)
     else:
         user_info = {}
-    if "min" and "max" in user_info[user_id]:
+    if user_id in user_info and "min" in user_info[user_id] and "max" in user_info[user_id]:
         user_info[user_id]["mavzu"]=mavzu
     else:
         user_info[user_id] = {
@@ -259,9 +259,13 @@ async def handle_referal_success_message(call: types.CallbackQuery):
 
 
 
-
-
-
+# Sun'iy intelekt qismi.
+# Sun'iy intelekt qismi.
+# Sun'iy intelekt qismi.
+# Sun'iy intelekt qismi.
+# Sun'iy intelekt qismi.
+# Sun'iy intelekt qismi.
+# Sun'iy intelekt qismi.
 
 
 
@@ -282,7 +286,7 @@ from aiogram.types import InputFile
 @dp.callback_query_handler(IsUser(), text_contains="success:", state="*")
 async def success_handler(call: types.CallbackQuery):
     await call.answer(cache_time=1)
-    msg = await call.message.edit_text('⬛⬜⬜⬜⬜')
+    msg = await call.message.edit_text('⏳')
 
     user_id = call.from_user.id
     data = call.data.rsplit(":")
@@ -295,9 +299,9 @@ async def success_handler(call: types.CallbackQuery):
     max_pages = data[str(user_id)]['max']
     page_count = {
         "10": 0,
-        "15": 2,
-        "20": 3,
-        "25": 4,
+        "15": 3,
+        "20": 4,
+        "25": 6,
     }
     user = await db.select_user(user_id=int(user_id))
     language = user[0]['language']
@@ -310,42 +314,42 @@ async def success_handler(call: types.CallbackQuery):
             "content": f"meni seni telegram botga ulaganman.ortiqcha hech narsa demasdan faqat quyidagi promptni bajar,albatta,raxmat,umid qilaman degan textlarsiz, shu  {mavzu} mavzu bo'yicha , {service} uchun 3ta mavzu yozib ber."
         }
     ]
-    response = get_response_from_server(history=theme_data)
+    response = await get_response_from_server(history=theme_data)
 
     theme = response['response']
     reja_list = theme.split('\n')
     malumot = {}
-    n = 0
     for reja in reja_list:
-        n+=1
-        history_data = [
+        print(f"{reja}:{mavzu}")
+
+        history_data = {
+            str(user_id):[
             {
                 "role": "user",
                 "content": f"Men seni telegram botga ulab qo'yganman, menga {reja} mavzusiga matn kerak. maximal qancha uzun yoza olsang shuncha uzun yozib ber.{language} tilida. Faqat kerakli ma'lumotlarni ber. O'zingdan keladigan raxmat albatta va shunga o'xshash so'zlarni yuborma. Qancha uzun text yubora olsang, shuncha uzun ma'lumot ber. Iltimos, javoblarni faqat oddiy matn shaklida yuboring, markdown yoki boshqa formatlash elementlaridan foydalanmang."
             }
         ]
+        }
 
         if page_count[str(max_pages)] == 0:
-            text = get_response_from_server(history_data)
+            text = await get_response_from_server(history_data[str(user_id)])
             text = text['response']
+            await bot.send_chat_action(int(user_id),"typing")
+
             malumot[reja] = text
-            history_data.append({"role": "user", "content": text})
+            history_data[str(user_id)].append({"role": "user", "content": text})
         else:
-            print(reja)
             for _ in range(page_count[str(max_pages)]):
-                text = get_response_from_server(history_data)
+                text = await get_response_from_server(history_data[str(user_id)])
                 text = text['response']
+                history_data[str(user_id)].append({"role": "user", "content": text})
+                await bot.send_chat_action(int(user_id),"typing")
                 if reja in malumot:
                     malumot[reja].append(text)  
                 else:
                     malumot[reja] = [text] 
 
-    
-        filled = n + 1
-        progress = "⬛" * filled + "⬜" * (5 - filled)
-        if msg.text != progress:
-            await msg.edit_text(progress)    
-
+    print('word boshlandi')
     file_stream = await word_generator(
         type=service,
         mavzu=mavzu,
@@ -355,13 +359,10 @@ async def success_handler(call: types.CallbackQuery):
         theme_text=malumot,
         user_id=str(user_id)
     )
-    await msg.edit_text('⬛️⬛️⬛️⬛️⬛️')
+    await bot.send_chat_action(int(user_id),"upload_document")
     await asyncio.sleep(0.5)  
     await msg.delete()
     await call.message.answer_document(InputFile(file_stream, filename=f"{mavzu}.docx"))
-
-
-
 
 
 

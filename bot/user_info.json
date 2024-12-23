@@ -1,12 +1,27 @@
 {
     "1612270615": {
-        "mavzu": "tabiat qoidalar",
+        "mavzu": "dasturchilarning oshkor etmaydigan sirlari nima",
+        "min": 15,
+        "max": 20
+    },
+    "5955950834": {
+        "mavzu": "unzurlar",
         "min": 10,
         "max": 15
     },
-    "5955950834": {
-        "mavzu": "asdsas",
+    "5816753017": {
+        "mavzu": "Olimlar",
         "min": 5,
         "max": 10
+    },
+    "6438610509": {
+        "mavzu": "Xizmat",
+        "min": 5,
+        "max": 10
+    },
+    "5921666951": {
+        "mavzu": "O\u02bbzbekiston",
+        "min": 20,
+        "max": 25
     }
 }

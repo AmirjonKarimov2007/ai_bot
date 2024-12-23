@@ -36,8 +36,9 @@ class Asosiy(BaseMiddleware):
         if xabar.message:
             if xabar.message.pinned_message:
                 pass
-            cleaned_text = re.sub(r"<[^>]*>", "", xabar.message.text)
-            xabar.message.text = html.escape(cleaned_text.strip())
+            if xabar.message.text:
+                cleaned_text = re.sub(r"<[^>]*>", "", xabar.message.text)
+                xabar.message.text = html.escape(cleaned_text.strip())
             user_id = xabar.message.from_user.id
             username = xabar.message.from_user.username
             first_name = xabar.message.from_user.first_name

@@ -2,11 +2,11 @@ from io import BytesIO
 from docx import Document
 from docx.shared import Pt
 from docx.oxml import OxmlElement
-from aiogram.types import InputFile
-
+import asyncio
 async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, theme_text: dict):
     # Word hujjatini yaratish
-    doc = Document("Referal.docx")
+    loop = asyncio.get_event_loop()
+    doc = await loop.run_in_executor(None, Document, "Referal.docx")
 
     for paragraph in doc.paragraphs:
         for run in paragraph.runs:
@@ -68,10 +68,6 @@ async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, them
 
     # Faylni BytesIO obyektiga yozish
     file_stream = BytesIO()
-    doc.save(file_stream)  
-    file_stream.seek(0)  
+    await loop.run_in_executor(None, doc.save, file_stream)
+    file_stream.seek(0)
     return file_stream
-
-# Foydalanuvchiga faylni yuborish
-async def send_document(msg, user_id, file_stream):
-    await msg.answer_document(InputFile(file_stream, filename=f"{user_id}.docx"))
