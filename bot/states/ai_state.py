@@ -24,3 +24,11 @@ class SERVICE_EDIT(StatesGroup):
     Referat_LANGUAGE = State()
     Referat_NUMBER_OF_PAGE = State()
 
+
+
+class PaymentState(StatesGroup):
+    PAYMENT_CHECK = State()
+    PAYMENT_SUM = State()
+    
+
+
