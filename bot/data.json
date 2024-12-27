@@ -1,0 +1,31 @@
+{
+    "premium_price": {
+        "message_id": "6",
+        "from_chat_id": "-1002454945885"
+    },
+    "get_stars": {
+        "message_id": "3",
+        "from_chat_id": "-1002454945885"
+    },
+    "get_qollanma": {
+        "message_id": "5",
+        "from_chat_id": "-1002454945885"
+    },
+    "administator": {
+        "message_id": "4",
+        "from_chat_id": "-1002454945885"
+    },
+    "price": {
+        "normal_price": "800",
+        "premium_price": "1000"
+    },
+    "services": {
+        "Referat": "100000",
+        "Mustaqil ish": "200000",
+        "Slaydlar": "300000",
+        "Insho": "1000",
+        "Tabrik": "20000",
+        "Bayon": "10000"
+    }
+
+}
