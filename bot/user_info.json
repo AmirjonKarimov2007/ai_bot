@@ -1,13 +1,13 @@
 {
     "1612270615": {
-        "mavzu": "olimlik",
+        "mavzu": "pul",
         "min": 15,
         "max": 20
     },
     "5955950834": {
-        "mavzu": "allolmalar",
-        "min": 10,
-        "max": 15
+        "mavzu": "pul",
+        "min": 5,
+        "max": 10
     },
     "5816753017": {
         "mavzu": "Olimlar",

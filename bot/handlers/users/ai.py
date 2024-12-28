@@ -240,25 +240,6 @@ async def handle_referal_success_message(call: types.CallbackQuery):
     except Exception as e:
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Sun'iy intelekt qismi.
 # Sun'iy intelekt qismi.
 # Sun'iy intelekt qismi.
@@ -295,12 +276,15 @@ async def success_handler(call: types.CallbackQuery):
         return
 
     user_data = user_info.get(str(user_id), {})
-    mavzu = user_data.get('mavzu', "")
-    max_pages = user_data.get('max', 10)
+    mavzu = user_data.get('mavzu')
+    max_pages = user_data.get('max')
 
-    page_count_map = {"10": 0, "15": 2, "20": 3, "25": 4}
-    page_count = page_count_map.get(str(max_pages), 0)
-
+    page_count = {
+        "10": 0,
+        "15": 2,
+        "20": 3,
+        "25": 4,
+    }
     # Database user info
     user = await db.select_user(user_id=user_id)
     if not user:
@@ -325,40 +309,101 @@ async def success_handler(call: types.CallbackQuery):
     response = await get_response_from_server(history=theme_data)
     themes = response.get('response', "").split('\n')
 
-    theme_texts = {}
+    malumot = {str(user_id):{
+
+    }}
+
     for theme in themes:
         print(theme)
-        history = [
-            {
-                "role": "user",
-                "content": (
-                    f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
-                    f"{language} tilida. Maksimal qancha uzun yozib bera olsang, shuncha uzun yozib ber. "
-                    "Faqat kerakli ma'lumotlarni yubor, ortiqcha so'zlar ishlatma. Ha, oldingiga qaraganda farqli matnlar tuzib bersang."
-                )
-            }
-        ]
-
-        if page_count == 0:
+        if page_count[str(max_pages)] == 0:
+            # Prepare the initial history
+            history = [
+                {
+                    "role": "user",
+                    "content": (
+                        f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
+                        f"{language} tilida. Maksimal qancha uzun yozib bera olsang, shuncha uzun yozib ber.lekin oldingi tekstingbilan mavmuni bir xil bo'lmasin. "
+                        "Faqat kerakli ma'lumotlarni yubor, ortiqcha so'zlar ishlatma. Ha, oldingiga qaraganda farqli matnlar tuzib bersang."
+                    )
+                }
+            ]
             response = await get_response_from_server(history=history)
-            theme_texts[theme] = response.get('response', "")
+
+            # Save the response in `malumot` for the user
+            malumot[str(user_id)][theme] = response['response']
+
+            # Save to ai_history.json
+            try:
+                with open("ai_history.json", "r") as f:
+                    ai_history = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                ai_history = {}
+
+            if str(user_id) not in ai_history:
+                ai_history[str(user_id)] = {}
+
+            ai_history[str(user_id)][theme] = response['response']
+
+            with open("ai_history.json", "w") as f:
+                json.dump(ai_history, f, indent=4)
+
         else:
-            theme_texts[theme] = []
-            for _ in range(page_count):
+            # Load or initialize ai_history.json
+            try:
+                with open("ai_history.json", "r") as f:
+                    ai_history = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                ai_history = {}
+
+            if str(user_id) not in ai_history:
+                ai_history[str(user_id)] = {}
+
+            # Use existing text for the theme if available
+            previous_text = ai_history[str(user_id)].get(theme, "")
+            history = [
+                {
+                    "role": "system",
+                    "content": (
+                        f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
+                        f"{language} tilida. Maksimal qancha uzun yozib bera olsang, shuncha uzun yozib ber. "
+                        f"Faqat kerakli matnlarni yubor, ortiqcha so'zlar ishlatma.matning juda manoli jarangdor va uzun bo'lishi kerak, Ha, oldingiga qaraganda farqli matnlar tuzib bersang:bu oldingi matnlaring,450ta so'zdan iorat bo'lishi kerak,:{previous_text},"
+                    )
+                }
+            ]
+
+            for _ in range(page_count[str(max_pages)]):
                 response = await get_response_from_server(history=history)
-                theme_texts[theme].append(response.get('response', ""))
-                history.append({"role": "user", "content": response.get('response', "")})
 
-            theme_texts[theme] = '\n'.join(theme_texts[theme])
+                # Append response to `malumot`
+                if theme in malumot[str(user_id)]:
+                    malumot[str(user_id)][theme] += response['response']
+                else:
+                    malumot[str(user_id)][theme] = response['response']
 
-    # Generate Word document
+                if theme in ai_history[str(user_id)]:
+                    ai_history[str(user_id)][theme] += response['response']
+                else:
+                    ai_history[str(user_id)][theme] = response['response']
+
+                ai_history[str(user_id)][theme] += response['response'] + (
+                    "mana bu generatsiya qilgan matnlaring, end yana shu mavzuga qo'limdan kelgancha uzunlikda bu "
+                    "matnlardan mazmun va mano jihatdan farqli matn generatsiya qilib ber."
+                )
+
+            with open("ai_history.json", "w") as f:
+                json.dump(ai_history, f, indent=4)
+
+    ai_history[str(user_id)] = {}
+    with open("ai_history.json", "w") as f:
+        json.dump(ai_history, f, indent=4)
+
     file_stream = await word_generator(
         type=service,
         mavzu=mavzu,
         univer=univer,
         name=author,
         rejalar=themes,
-        theme_text=theme_texts,
+        theme_text=malumot[str(user_id)],
         user_id=str(user_id)
     )
 
