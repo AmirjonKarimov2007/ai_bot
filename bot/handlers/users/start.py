@@ -30,7 +30,7 @@ current_time = datetime.now(uzbekistan_tz)
 
 
 
-@dp.callback_query_handler(text="start")
+@dp.callback_query_handler(text="start",state='*')
 async def bot_echo(call: CallbackQuery):
     await call.answer(cache_time=1)
     user = call.from_user

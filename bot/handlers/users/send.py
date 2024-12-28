@@ -17,7 +17,7 @@ from filters.users import IsUser
 
 
 from keyboards.inline.main_menu_super_admin import services_keyboards__board
-@dp.message_handler(IsUser(),text='✅Foydalanish')
+@dp.message_handler(IsUser(),text='✅Foydalanish',state='*')
 async def echo(message: types.Message):
     await message.answer(f"<b>Qaysi Xizmatdan Foydalanmoqchisiz:</b>",reply_markup=services_keyboards__board())
 
@@ -68,7 +68,7 @@ async def get_premium_func(call: types.CallbackQuery):
             
 
 
-@dp.message_handler(IsUser(),text="TOP foydalanuvchilar")
+@dp.message_handler(IsUser(),text="TOP foydalanuvchilar",state='*')
 async def top_active_users(message: types.Message):
     top_users = await db.get_top_users()  # DB-dan top 10 foydalanuvchilarni olamiz
 

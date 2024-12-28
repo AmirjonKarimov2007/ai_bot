@@ -5,7 +5,7 @@ check.insert(InlineKeyboardButton(text="✅Ha", callback_data='ha'))
 check.insert(InlineKeyboardButton(text="❌Yo'q", callback_data='Yoq'))
 
 get_premium_keyboard = InlineKeyboardMarkup(row_width=1)
-get_premium_keyboard.insert(InlineKeyboardButton(text='Xizmat UCHUN SARFLASH✅',callback_data="select_service_package"))
+get_premium_keyboard.insert(InlineKeyboardButton(text='Balansni to\'ldirish✅',callback_data="hisobni_toldirish"))
 
 def service_keyboard(balance):
     # Tariflarga mos emoji tayyorlash

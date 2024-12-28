@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timedelta
 from datetime import timedelta
 
@@ -277,32 +278,36 @@ class Database:
 
 
 
-
     # Payment Methods
-    async def select_user_payment(self, **kwargs):
+    async def select_payment(self, **kwargs):
             sql = "SELECT * FROM users_payment WHERE "
             sql, parameters = self.format_args(sql, kwargs)
 
+            parameters = tuple(int(param) if param == 'invoice' else param for param in parameters)
+
+            return await self.execute(sql, *parameters, fetch=True)
+
 
     async def add_payment(
-            self, name, username, user_id, balance=0, number=None, summa=None, 
-            created_date=None, updated_date=None
+            self, name, username, user_id,file_id=None, balance=0, number=None, summa=None, 
+            invoice=None, created_date=None, updated_date=None
         ):
-        """
-        Payment ma'lumotlarini PostgreSQL bazasiga qo'shish funksiyasi.
-        """
-        sql = """
-            INSERT INTO payment_payment (
-                name, username, user_id, balance, number, summa, created_date, updated_date
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING *
-        """
-        if not created_date:
-            created_date = datetime.utcnow()
-        if not updated_date:
-            updated_date = datetime.utcnow()
-        return await self.execute(
-            sql, name, username, user_id, balance, number, summa, created_date, updated_date, fetchrow=True
-        )
+            
+            if not invoice:
+                invoice = str(uuid.uuid4())[:10] 
+            
+            sql = """
+                INSERT INTO users_payment (
+                    name, username, user_id,file_id, balance, number, summa, invoice, created_date, updated_date
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,$10)
+                RETURNING *
+            """
+            if not created_date:
+                created_date = datetime.utcnow()
+            if not updated_date:
+                updated_date = datetime.utcnow()
 
+            return await self.execute(
+                sql, name, username, user_id,file_id,balance, number, summa, invoice, created_date, updated_date, fetchrow=True
+            )

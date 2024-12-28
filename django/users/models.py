@@ -34,10 +34,12 @@ class User(models.Model):
 class Payment(models.Model):
     name = models.CharField(verbose_name='Fullname', max_length=100)
     username = models.CharField(verbose_name='Username', max_length=200, null=True,blank=True)
-    user_id = models.BigIntegerField(verbose_name='Telegram_id', unique=True)
+    user_id = models.BigIntegerField(verbose_name='Telegram_id')
+    file_id = models.CharField(verbose_name='Chek_id', max_length=500)
     number = models.BigIntegerField(verbose_name="Telefon raqami")
     balance = models.BigIntegerField(verbose_name='Umummiy Balance',null=True,blank=True)
     summa = models.BigIntegerField(verbose_name='Tolov Miqtori')
+    invoice = models.CharField(verbose_name='Invoice', max_length=100,unique=True)  # Make it unique for safety    created_date = models.DateTimeField(auto_now_add=True,verbose_name="Yaratilgan sana")
     created_date = models.DateTimeField(auto_now_add=True,verbose_name="Yaratilgan sana")
     updated_date = models.DateTimeField(auto_now=True,verbose_name="O'zgartirilgan sana")
     def __str__(self) -> str:

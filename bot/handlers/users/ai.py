@@ -128,8 +128,6 @@ async def handle_referal_message(message: types.Message, state: FSMContext):
 
 
 
-
-
 # Register Jarayoni
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Referat_AUTHOR_NAME)
 async def handle_referal_author__message(message: types.Message, state: FSMContext):
@@ -365,8 +363,8 @@ async def success_handler(call: types.CallbackQuery):
                     "role": "system",
                     "content": (
                         f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
-                        f"{language} tilida. Maksimal qancha uzun yozib bera olsang, shuncha uzun yozib ber. "
-                        f"Faqat kerakli matnlarni yubor, ortiqcha so'zlar ishlatma.matning juda manoli jarangdor va uzun bo'lishi kerak, Ha, oldingiga qaraganda farqli matnlar tuzib bersang:bu oldingi matnlaring,450ta so'zdan iorat bo'lishi kerak,:{previous_text},"
+                        f"{language} tilida. . "
+                        f"Faqat kerakli matnlarni yubor,matning juda manoli jarangdor va uzun bo'lishi shart,600ta so'zdan iorat bo'lishi kerak, Ha, oldingiga qaraganda farqli matnlar tuzib bersang:bu oldingi matnlaring:{previous_text},"
                     )
                 }
             ]
@@ -374,7 +372,6 @@ async def success_handler(call: types.CallbackQuery):
             for _ in range(page_count[str(max_pages)]):
                 response = await get_response_from_server(history=history)
 
-                # Append response to `malumot`
                 if theme in malumot[str(user_id)]:
                     malumot[str(user_id)][theme] += response['response']
                 else:

@@ -18,8 +18,42 @@ import uuid
 
 CHANNEL = "@Uzbekcoders_uz_sertifikatlar"
 
+@dp.callback_query_handler(IsUser(), text="hisobni_toldirish",state='*')
+async def get_chek_callback(call: types.CallbackQuery):
+    await call.answer(cache_time=1)
+    await call.message.delete()
+    text_1 = """📕Taqdimot/Slayd narxlari:
+6 sahifadan, 10 sahifagacha - 4000 so'm
+11 sahifadan, 20 sahifagacha - 5000 so'm
 
-@dp.message_handler(commands="buy")
+📘Mustaqil ish/Referal narxlari:
+10 sahifagacha - 4000 so'm
+25 sahifagacha - 5000 so'm"""
+    await call.message.answer(text=text_1)
+
+    text_2 = """<b>Iltimos faqat ushbu summalar miqdorida to'lov qiling:</b>
+- 2 000 so'm
+- 3 000 so'm
+- 5 000 so'm
+* 10 000 so'm to'lov qilsangiz, +2000 so'm bonus🎁
+* 20 000 so'm to'lov qilsangiz, +5000 so'm bonus🎁
+* 50 000 so'm to'lov qilsangiz, +15000 so'm bonus🎁
+
+<b><i>Quyidagi karta raqamiga to'lov qiling va chekni skrenshot qilib oling (COPY qilish uchun karta raqam ustiga bosing).</i></b>
+<code>5614 6824 1453 1063</code>
+<b>Ergashev Sardor |Uzcard</b>
+
+<code>9860 1801 0909 0923</code>
+<b>Ergashev Sardor | Humo</b>
+"""
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.insert(InlineKeyboardButton(text="📨Chekni yuborish", callback_data="payment"))
+    await call.message.answer_photo(
+        photo="https://ak.picdn.net/shutterstock/videos/1094038991/thumb/4.jpg",
+        caption=text_2,
+        reply_markup=markup
+    )
+@dp.message_handler(IsUser(),commands="buy")
 async def get_chek(message: types.Message):
     text_1 = """📕Taqdimot/Slayd narxlari:
 6 sahifadan, 10 sahifagacha - 4000 so'm
@@ -51,7 +85,11 @@ async def get_chek(message: types.Message):
     await bot.send_photo(chat_id=message.from_user.id,photo="https://ak.picdn.net/shutterstock/videos/1094038991/thumb/4.jpg",caption=text_2,reply_markup=markup)
 
 
+@dp.message_handler(IsUser(),commands="chek",state='*')
+async def cheklar(message: types.Message,state:FSMContext):
 
+    await message.answer(text=f"<b>📨To'lov qilganingizni tasdiqlovchi chekni skrenshotini yoki faylini yuboring:</b>")
+    await PaymentState.PAYMENT_CHECK.set()
 @dp.callback_query_handler(IsUser(),text="payment",state='*')
 async def chek(call: types.CallbackQuery,state:FSMContext):
     await call.answer(cache_time=1)
@@ -141,8 +179,8 @@ async def select_user_payment_handler(call: types.CallbackQuery):
     text+=f"\n\n<i>Sizning invoice raqamingiz:</i><code>{invoice}</code>"
 
     markup = InlineKeyboardMarkup(row_width=1)
-    markup.insert(InlineKeyboardButton(text=f"✅Qabul Qilish",callback_data=f"checked_payment:{call.from_user.id}:{price}"))
-    markup.insert(InlineKeyboardButton(text=f"❌Bekor qilish",callback_data=f"calceled_payment:{call.from_user.id}:{price}"))
+    markup.insert(InlineKeyboardButton(text=f"✅Qabul Qilish",callback_data=f"checked_payment:{call.from_user.id}:{price}:{invoice}"))
+    markup.insert(InlineKeyboardButton(text=f"❌Bekor qilish",callback_data=f"calceled_payment:{call.from_user.id}:{price}:{invoice}"))
     try:
         await call.message.edit_caption(caption=f"{text}")
         await bot.send_photo(photo=photo,chat_id=CHANNEL,caption=caption_text,reply_markup=markup)
@@ -152,24 +190,70 @@ async def select_user_payment_handler(call: types.CallbackQuery):
 # /// Client chek yuboriish qismi///# /// Client chek yuboriish qismi///# /// Client chek yuboriish qismi///# /// Client chek yuboriish qismi///
 import pytz
 import datetime
+
 @dp.callback_query_handler(IsSuperAdmin(),text_contains="checked_payment:",state='*')
 async def tasdiqlangan_tolov(call: types.CallbackQuery):
     data = call.data.rsplit(":")
     user_id = data[1]
     user_price = data[2]
+    invoice = data[3]
+    photo = call.message.photo[-1].file_id
     uzbekistan_tz = pytz.timezone('Asia/Tashkent')
     datas = datetime.datetime.now(uzbekistan_tz)
-    # try:
-    user = await db.select_user(user_id=int(user_id))
-    name = user[0]['name']
-    username = user[0]['username']
-    number = user[0]['number']
-    await db.add_payment(name=name,username=username,user_id=int(user_id),summa=int(user_price),
-                            number=int(number),created_date=datas,updated_date=datas)
-    await db.update_balance(user_id=int(user_id),sum=int(user_price))
-    # except Exception as e:
-    #     await bot.send_message(chat_id=ADMINS[0],text=f"To'lov qisminida xatolik yuz berdi:{e}")
+    try:
+        if await db.select_payment(invoice=invoice):
+            await call.answer("❌Siz bu invoysni tasdiqlagansiz...",show_alert=True)
+        else:
+            
+            user = await db.select_user(user_id=int(user_id))
+            name = user[0]['name']
+            username = user[0]['username']
+            number = user[0]['number']
+            await db.add_payment(name=name,username=username,user_id=int(user_id),file_id=photo,summa=int(user_price),
+                                    number=int(number),created_date=datas,updated_date=datas,invoice=invoice)
+            await db.update_balance(user_id=int(user_id),sum=int(user_price))
+            user = await db.select_user(user_id=int(call.from_user.id))
+            balance = user[0]['balance']
+            text = f"✅ To'lovingiz qabul qilindi.\n"
+            text += f"Balansingiz {user_price}ga to'ldirildi.\n"
+            text += f"Balansingiz:{balance}\n"
+            await call.answer("✅Foydalanuvchining balansini yangiladingiz?",show_alert=True)
+            await bot.send_photo(chat_id=ADMINS[0],photo=photo,caption=text)
+            await call.message.edit_reply_markup()
 
+        
+    except Exception as e:
+        await bot.send_message(chat_id=ADMINS[0],text=f"To'lov qisminida xatolik yuz berdi:{e}")
+
+# Cenceled payment handlerlar
+@dp.callback_query_handler(IsSuperAdmin(),text_contains="calceled_payment:",state='*')
+async def atmen_qilingan_tolov(call: types.CallbackQuery):
+    data = call.data.rsplit(":")
+    user_id = data[1]
+    user_price = data[2]
+    invoice = data[3]
+    photo = call.message.photo[-1].file_id
+    uzbekistan_tz = pytz.timezone('Asia/Tashkent')
+    datas = datetime.datetime.now(uzbekistan_tz)
+    try:
+        if await db.select_payment(invoice=invoice):
+            await call.answer("❌Invoys Bazadan topildi,balansni qo'lda yangilang.",show_alert=True)
+        else:
+            user = await db.select_user(user_id=int(user_id))
+            name = user[0]['name']
+            username = user[0]['username']
+            number = user[0]['number']
+            text = f"💸Summa: {user_price} so'm\n"
+            text+=f"🚫To'lovingiz rad etildi.\n\n"
+            text+=f"🆘Sababi\n:"
+            text+=f"Siz yuborgan rasmda to'lov ma'lumotlari yo'q\n"
+            text+=f"Agar shikoyatingiz bo'lsa admin( @IT_25_1) bilan bog'laning!\n"
+                        
+            await call.answer(f"✅Invoys Bekor qilindi qilindi",show_alert=True)
+            await bot.send_photo(chat_id=int(user_id),photo=photo,caption=text)
+            await call.message.edit_reply_markup()
+    except Exception as e:
+        await bot.send_message(chat_id=ADMINS[0],text=f"To'lov qisminida xatolik yuz berdi:{e}")
 
 
 
