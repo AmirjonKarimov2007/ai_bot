@@ -247,22 +247,25 @@ async def handle_referal_success_message(call: types.CallbackQuery):
 # Sun'iy intelekt qismi.
 
 
-
-from aiogram import types
-from aiogram.types import InputFile
 import json
+import re
 import asyncio
-from docx_generator import word_generator
 import pytz
 import datetime
+from aiogram import types
+from aiogram.types import InputFile
+from docx_generator import word_generator
+uzbekistan_tz = pytz.timezone('Asia/Tashkent')
 
-
-
-import re
 
 @dp.callback_query_handler(IsUser(), text_contains="success:", state="*")
 async def success_handler(call: types.CallbackQuery):
     await call.answer(cache_time=1)
+    await gg_generate(call=call)
+
+
+async def gg_generate(call: types.CallbackQuery):
+    time = datetime.datetime.now(uzbekistan_tz)
     message_text = call.message.text
     topic_line = next((line for line in message_text.split('\n') if line.startswith("📃Mavzu:")), "")
     page_range_line = next((line for line in message_text.split('\n') if line.startswith("📰Sahifalar soni:")), "")
@@ -270,24 +273,17 @@ async def success_handler(call: types.CallbackQuery):
     max_pages = page_numbers.group(2).replace('gacha', '')
     topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
     
+    print(f"Start: {time.hour}:{time.minute}:{time.second}")
 
-
-    msg = await call.message.edit_text('⏳')
-    uzbekistan_tz = pytz.timezone('Asia/Tashkent')
-    datas = datetime.datetime.now(uzbekistan_tz)
-    print(f'started:{datas.hour}:{datas.minute}:{datas.second}')
     user_id = call.from_user.id
     data = call.data.split(":")
     service = data[1]
     mavzu = topic
-    max_pages = max_pages
+    max_pages = int(max_pages)
 
-    page_count = {
-        "10": 0,
-        "15": 2,
-        "20": 3,
-        "25": 4,
-    }
+    page_count = {"10": 0, "15": 2, "20": 3, "25": 4}
+
+    # Fetch user from database
     user = await db.select_user(user_id=user_id)
     if not user:
         await call.message.answer("Foydalanuvchi ma'lumotlari topilmadi.")
@@ -297,13 +293,24 @@ async def success_handler(call: types.CallbackQuery):
     univer = user[0].get('univer', "")
     author = user[0].get('author', "")
 
+    with open("ai_history.json", "r") as f:
+        ai_history = json.load(f)
+
+    if str(user_id) not in ai_history:
+        ai_history[str(user_id)] = {}
+    with open("ai_history.json", "w") as f:
+        json.dump(ai_history, f, indent=4)
+
+    msg = await call.message.edit_text("⏳")
+
     # Generate themes
     theme_data = [
         {
             "role": "user",
             "content": (
                 f"Men seni telegram botga ulaganman. Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
-                f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber.albatta,bajaraman degan so'zlarni yozishing shart emas."
+                f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
+                "Albatta, bajaraman degan so'zlarni yozishing shart emas."
             )
         }
     ]
@@ -311,61 +318,14 @@ async def success_handler(call: types.CallbackQuery):
     response = await get_response_from_server(history=theme_data)
     themes = response.get('response', "").split('\n')
 
-
-    with open("ai_history.json", "r") as f:
-                ai_history = json.load(f)
-    if str(user_id) not in ai_history:
-        ai_history[str(user_id)] = {}
-    with open("ai_history.json", "w") as f:
-                    json.dump(ai_history, f, indent=4)
-
+    tasks = []
 
     for theme in themes:
-        if page_count[str(max_pages)] == 0:
-            history = [
-                {
-                    "role": "user",
-                    "content": (
-                        f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak.sozlar soni 600tadan kam bo'lmasligi shart. "
-                        f"{language} tilida."
-                        "Faqat kerakli ma'lumotlarni yubor, ortiqcha so'zlar ishlatma. "
-                    )
-                }
-            ]
-            response = await get_response_from_server(history=history)
-            print(response['response'])
+        tasks.append(generate_text_for_theme(user_id, theme, language, page_count, max_pages, ai_history))
 
-            with open("ai_history.json", "r") as f:
-                ai_history = json.load(f)
+    await asyncio.gather(*tasks)
 
-            ai_history[str(user_id)][theme] = response['response']
-
-            with open("ai_history.json", "w") as f:
-                json.dump(ai_history, f, indent=4)
-        else:
-            for _ in range(page_count[str(max_pages)]):
-                print(theme)
-                with open("ai_history.json", "r") as f:
-                    ai_history = json.load(f)
-                previous_text = ai_history[str(user_id)].get(theme)
-                history = [
-                {
-                    "role": "system",
-                    "content": (
-                        f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
-                        f"{language} tilida. . "
-                        f"Matning juda manoli jarangdor va uzun bo'lishi shart,750ta so'zdan iborat bo'lishi kerak,bu oldingi matnlaring,Hozirda generatsiya qilgan matnlaringda bunga qatnashgan gaplarni ishlatma va mano jihatdan farqli bo'lsin.tushundingmi bu matnlardan farqli bo'lsin.bir xil gaplar va so'zlarni iloji boricha ishlatma.{previous_text}:"
-                    )
-                }
-            ]
-                response = await get_response_from_server(history=history)
-                if theme in ai_history[str(user_id)]:
-                    ai_history[str(user_id)][theme] = ai_history[str(user_id)][theme]+response['response']
-                else:
-                    ai_history[str(user_id)][theme] = response['response']
-                with open("ai_history.json", "w") as f:
-                    json.dump(ai_history, f, indent=4)
-
+    
 
     file_stream = await word_generator(
         type=service,
@@ -376,11 +336,9 @@ async def success_handler(call: types.CallbackQuery):
         theme_text=ai_history[str(user_id)],
         user_id=str(user_id)
     )
-    datase = datetime.datetime.now(uzbekistan_tz)
-    ai_history[str(user_id)] = {}
+    ai_history[str(user_id)]={}
     with open("ai_history.json", "w") as f:
         json.dump(ai_history, f, indent=4)
-    print(f'Ended:{datase.hour}:{datase.minute}:{datase.second}')
 
 
     await bot.send_chat_action(user_id, "upload_document")
@@ -389,6 +347,51 @@ async def success_handler(call: types.CallbackQuery):
     await msg.delete()
     await call.message.answer_document(InputFile(file_stream, filename=f"{mavzu}.docx"))
 
+    ai_history[str(user_id)] = {}
+    with open("ai_history.json", "w") as f:
+        json.dump(ai_history, f, indent=4)
+
+    time = datetime.datetime.now(uzbekistan_tz)
+    print(f"End: {time.hour}:{time.minute}:{time.second}")
+
+
+async def generate_text_for_theme(user_id, theme, language, page_count, max_pages, ai_history):
+    # Agar theme lug‘atda mavjud bo‘lmasa, uni bo‘sh qiymat bilan boshlash
+    if theme not in ai_history[str(user_id)]:
+        ai_history[str(user_id)][theme] = ""
+
+    if page_count[str(max_pages)] == 0:
+        history = [
+            {
+                "role": "system",
+                "content": (
+                    f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
+                    f"{language} tilida. Matning 500 so'zdan oshmasin. "
+                    "Faqat kerakli matnlarni yubor."
+                )
+            }
+        ]
+        response = await get_response_from_server(history=history)
+        ai_history[str(user_id)][theme] += response['response']
+    else:
+        
+
+        for _ in range(page_count[str(max_pages)]):
+            previous_text = ai_history[str(user_id)].get(theme, "")
+            history = [
+                {
+                    "role": "system",
+                    "content": (
+                        f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
+                        f"{language} tilida. Matning 700 so'zdan oshmasin. "
+                        f"Bu oldingi matning: {previous_text}. Yangi, farqli matn yozib ber."
+                    )
+                }
+            ]
+            response = await get_response_from_server(history=history)
+            ai_history[str(user_id)][theme] += response['response']
+            with open("ai_history.json", "w") as f:
+                json.dump(ai_history, f, indent=4)
 
 
 
@@ -400,4 +403,6 @@ async def back_to_main_menu_method(call: types.CallbackQuery,state: FSMContext):
     await call.answer(cache_time=1)
     if call.message.text != "Qaysi Xizmatdan Foydalanmoqchisiz:":
         await call.message.edit_text(text="<b>Qaysi Xizmatdan Foydalanmoqchisiz:</b>", reply_markup=services_keyboards__board())
+    else:
+        await call.message.edit_text(text="<b>Qaysi Xizmatdan Foydalanmoqchisiz?</b>", reply_markup=services_keyboards__board())
     await state.finish()
