@@ -253,29 +253,34 @@ from aiogram.types import InputFile
 import json
 import asyncio
 from docx_generator import word_generator
+import pytz
+import datetime
 
 
 
-
+import re
 
 @dp.callback_query_handler(IsUser(), text_contains="success:", state="*")
 async def success_handler(call: types.CallbackQuery):
     await call.answer(cache_time=1)
-    msg = await call.message.edit_text('⏳')
+    message_text = call.message.text
+    topic_line = next((line for line in message_text.split('\n') if line.startswith("📃Mavzu:")), "")
+    page_range_line = next((line for line in message_text.split('\n') if line.startswith("📰Sahifalar soni:")), "")
+    page_numbers = re.search(r'(\d+dan)\s*–\s*(\d+gacha)', page_range_line)
+    max_pages = page_numbers.group(2).replace('gacha', '')
+    topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
+    
 
+
+    msg = await call.message.edit_text('⏳')
+    uzbekistan_tz = pytz.timezone('Asia/Tashkent')
+    datas = datetime.datetime.now(uzbekistan_tz)
+    print(f'started:{datas.hour}:{datas.minute}:{datas.second}')
     user_id = call.from_user.id
     data = call.data.split(":")
     service = data[1]
-    try:
-        with open('user_info.json', 'r') as file:
-            user_info = json.load(file)
-    except FileNotFoundError:
-        await call.message.answer("Foydalanuvchi ma'lumotlari topilmadi.")
-        return
-
-    user_data = user_info.get(str(user_id), {})
-    mavzu = user_data.get('mavzu')
-    max_pages = user_data.get('max')
+    mavzu = topic
+    max_pages = max_pages
 
     page_count = {
         "10": 0,
@@ -283,7 +288,6 @@ async def success_handler(call: types.CallbackQuery):
         "20": 3,
         "25": 4,
     }
-    # Database user info
     user = await db.select_user(user_id=user_id)
     if not user:
         await call.message.answer("Foydalanuvchi ma'lumotlari topilmadi.")
@@ -307,92 +311,61 @@ async def success_handler(call: types.CallbackQuery):
     response = await get_response_from_server(history=theme_data)
     themes = response.get('response', "").split('\n')
 
-    malumot = {str(user_id):{
 
-    }}
+    with open("ai_history.json", "r") as f:
+                ai_history = json.load(f)
+    if str(user_id) not in ai_history:
+        ai_history[str(user_id)] = {}
+    with open("ai_history.json", "w") as f:
+                    json.dump(ai_history, f, indent=4)
+
 
     for theme in themes:
-        print(theme)
         if page_count[str(max_pages)] == 0:
-            # Prepare the initial history
             history = [
                 {
                     "role": "user",
                     "content": (
-                        f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
-                        f"{language} tilida. Maksimal qancha uzun yozib bera olsang, shuncha uzun yozib ber.lekin oldingi tekstingbilan mavmuni bir xil bo'lmasin. "
-                        "Faqat kerakli ma'lumotlarni yubor, ortiqcha so'zlar ishlatma. Ha, oldingiga qaraganda farqli matnlar tuzib bersang."
+                        f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak.sozlar soni 600tadan kam bo'lmasligi shart. "
+                        f"{language} tilida."
+                        "Faqat kerakli ma'lumotlarni yubor, ortiqcha so'zlar ishlatma. "
                     )
                 }
             ]
             response = await get_response_from_server(history=history)
+            print(response['response'])
 
-            # Save the response in `malumot` for the user
-            malumot[str(user_id)][theme] = response['response']
-
-            # Save to ai_history.json
-            try:
-                with open("ai_history.json", "r") as f:
-                    ai_history = json.load(f)
-            except (FileNotFoundError, json.JSONDecodeError):
-                ai_history = {}
-
-            if str(user_id) not in ai_history:
-                ai_history[str(user_id)] = {}
+            with open("ai_history.json", "r") as f:
+                ai_history = json.load(f)
 
             ai_history[str(user_id)][theme] = response['response']
 
             with open("ai_history.json", "w") as f:
                 json.dump(ai_history, f, indent=4)
-
         else:
-            # Load or initialize ai_history.json
-            try:
+            for _ in range(page_count[str(max_pages)]):
+                print(theme)
                 with open("ai_history.json", "r") as f:
                     ai_history = json.load(f)
-            except (FileNotFoundError, json.JSONDecodeError):
-                ai_history = {}
-
-            if str(user_id) not in ai_history:
-                ai_history[str(user_id)] = {}
-
-            # Use existing text for the theme if available
-            previous_text = ai_history[str(user_id)].get(theme, "")
-            history = [
+                previous_text = ai_history[str(user_id)].get(theme)
+                history = [
                 {
                     "role": "system",
                     "content": (
                         f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
                         f"{language} tilida. . "
-                        f"Faqat kerakli matnlarni yubor,matning juda manoli jarangdor va uzun bo'lishi shart,600ta so'zdan iorat bo'lishi kerak, Ha, oldingiga qaraganda farqli matnlar tuzib bersang:bu oldingi matnlaring:{previous_text},"
+                        f"Matning juda manoli jarangdor va uzun bo'lishi shart,750ta so'zdan iborat bo'lishi kerak,bu oldingi matnlaring,Hozirda generatsiya qilgan matnlaringda bunga qatnashgan gaplarni ishlatma va mano jihatdan farqli bo'lsin.tushundingmi bu matnlardan farqli bo'lsin.bir xil gaplar va so'zlarni iloji boricha ishlatma.{previous_text}:"
                     )
                 }
             ]
-
-            for _ in range(page_count[str(max_pages)]):
                 response = await get_response_from_server(history=history)
-
-                if theme in malumot[str(user_id)]:
-                    malumot[str(user_id)][theme] += response['response']
-                else:
-                    malumot[str(user_id)][theme] = response['response']
-
                 if theme in ai_history[str(user_id)]:
-                    ai_history[str(user_id)][theme] += response['response']
+                    ai_history[str(user_id)][theme] = ai_history[str(user_id)][theme]+response['response']
                 else:
                     ai_history[str(user_id)][theme] = response['response']
+                with open("ai_history.json", "w") as f:
+                    json.dump(ai_history, f, indent=4)
 
-                ai_history[str(user_id)][theme] += response['response'] + (
-                    "mana bu generatsiya qilgan matnlaring, end yana shu mavzuga qo'limdan kelgancha uzunlikda bu "
-                    "matnlardan mazmun va mano jihatdan farqli matn generatsiya qilib ber."
-                )
-
-            with open("ai_history.json", "w") as f:
-                json.dump(ai_history, f, indent=4)
-
-    ai_history[str(user_id)] = {}
-    with open("ai_history.json", "w") as f:
-        json.dump(ai_history, f, indent=4)
 
     file_stream = await word_generator(
         type=service,
@@ -400,9 +373,15 @@ async def success_handler(call: types.CallbackQuery):
         univer=univer,
         name=author,
         rejalar=themes,
-        theme_text=malumot[str(user_id)],
+        theme_text=ai_history[str(user_id)],
         user_id=str(user_id)
     )
+    datase = datetime.datetime.now(uzbekistan_tz)
+    ai_history[str(user_id)] = {}
+    with open("ai_history.json", "w") as f:
+        json.dump(ai_history, f, indent=4)
+    print(f'Ended:{datase.hour}:{datase.minute}:{datase.second}')
+
 
     await bot.send_chat_action(user_id, "upload_document")
     await asyncio.sleep(0.5)
