@@ -7,10 +7,12 @@ class ServicesStates(StatesGroup):
     Referat_LANGUAGE = State()
     Referat_NUMBER_OF_PAGE = State()
     Referat_CHECK_RESOURCES = State()
+    Mustaqil = State()
+    Mustaqil_AUTHOR_NAME= State()
     SUCCESS_SERVICE = State()
 
 
-    Mustaqil = State()
+    
     Slaydlar = State()
     Insho = State()
     Tabrik = State()
