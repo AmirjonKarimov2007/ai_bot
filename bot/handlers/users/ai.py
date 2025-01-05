@@ -60,7 +60,7 @@ async def select_service(call: types.CallbackQuery):
     await call.message.edit_text(text=f"<b>Sizdan so'ragalgan malumotlarni aniq va bexato yuborishga harakart qiling.\n\n{service} qaysi mavzu nomi ostiga tayyorlanishi kerak.</b>",reply_markup=markup)
     if service == "Referat":
         await ServicesStates.Referat.set()
-    elif service == "Mustaqil ish":
+    elif service == "Mustaqil Ish":
         await ServicesStates.Mustaqil.set()
     elif service == "Slaydlar":
         await ServicesStates.Slaydlar.set()
@@ -71,11 +71,11 @@ async def select_service(call: types.CallbackQuery):
     elif service == "Bayon":
         await ServicesStates.Bayon.set()  
         
-# Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish
-# Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish
-# Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish
-# Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish
-# Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish Mustaqil ish
+# Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish
+# Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish
+# Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish
+# Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish
+# Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish Mustaqil Ish
 
 
 
@@ -406,23 +406,38 @@ from aiogram import types
 from aiogram.types import InputFile
 from docx_generator import word_generator
 uzbekistan_tz = pytz.timezone('Asia/Tashkent')
-
+from keyboards.inline.boglanish_button import get_premium_keyboard
 
 @dp.callback_query_handler(IsUser(), text_contains="success:", state="*")
 async def success_handler(call: types.CallbackQuery):
-    await call.answer(cache_time=1)
     data = call.data.rsplit(":")
     service = data[1]
-    if service=="REFEAT":
-        with open("data.json", "r") as f:
-            user_data = json.load(f)
-        await gg_generate_referat(call=call)
+    user = await db.select_user(user_id = int(call.from_user.id))
+    user = user[0]
+    page_range_line = next((line for line in call.message.text.split('\n') if line.startswith("📰Sahifalar soni:")), "")
+    page_numbers = re.search(r'(\d+dan)\s*–\s*(\d+gacha)', page_range_line)
+    max_pages = page_numbers.group(2).replace('gacha', '')
+    with open("data.json", "r") as f:
+        user_data = json.load(f)
+    balance = user['balance']
+    if service=="REFERAT":
+        price = user_data['services']['Referat'][max_pages]
+        if balance>=price:
+            await db.update_balances(user_id=call.from_user.id,sum=int(balance)-int(price))
+            await gg_generate_referat(call=call)
+        else:
+            await call.answer(cache_time=1)
+            await call.message.answer(text=f"<b>😔Sizda {service} generatsiya qilish uchun yetarlicha mablag' yo'q</b>",reply_markup=get_premium_keyboard)
     elif service=="MUSTAQIL ISH":
-        with open("data.json", "r") as f:
-            user_data = json.load(f)
+        price = user_data['services']['Mustaqil Ish'][max_pages]
+        if balance>=price:
+            await db.update_balances(user_id=call.from_user.id,sum=int(balance)-int(price))
+            await gg_generate_mustaqil(call=call)
+
+        else:
+            await call.answer(cache_time=1)
+            await call.message.answer(text=f"<b>😔Sizda {service} generatsiya qilish uchun yetarlicha mablag' yo'q</b>",reply_markup=get_premium_keyboard)
             
-        print(service)
-        await gg_generate_mustaqil(call=call)
         
 
 
@@ -443,7 +458,7 @@ async def gg_generate_referat(call: types.CallbackQuery):
     mavzu = topic
     max_pages = int(max_pages)
 
-    page_count = {"10": 0, "15": 2, "20": 3, "25": 4}
+    page_count = {"10": 0, "15": 2, "20": 3, "25":4,"30":5}
 
     # Fetch user from database
     user = await db.select_user(user_id=user_id)
@@ -472,7 +487,7 @@ async def gg_generate_referat(call: types.CallbackQuery):
             "content": (
                 f"Men seni telegram botga ulaganman. Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
                 f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
-                "Albatta, bajaraman degan so'zlarni yozishing shart emas."
+                "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida bosh joy tashlama"
             )
         }
     ]
@@ -515,6 +530,7 @@ async def gg_generate_referat(call: types.CallbackQuery):
 
     time = datetime.datetime.now(uzbekistan_tz)
     print(f"End: {time.hour}:{time.minute}:{time.second}")
+
 async def generate_text_for_theme_referat(user_id, theme, language, page_count, max_pages, ai_history):
     # Agar theme lug‘atda mavjud bo‘lmasa, uni bo‘sh qiymat bilan boshlash
     if theme not in ai_history[str(user_id)]:
@@ -543,7 +559,7 @@ async def generate_text_for_theme_referat(user_id, theme, language, page_count, 
                     "role": "system",
                     "content": (
                         f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
-                        f"{language} tilida. Matning 700 so'zdan oshmasin. "
+                        f"{language} tilida. Matning 700 so'zdan kam ham ko'p ham bo'lmasin. "
                         f"Bu oldingi matning: {previous_text}. Yangi, farqli matn yozib ber."
                     )
                 }
@@ -571,7 +587,7 @@ async def gg_generate_mustaqil(call: types.CallbackQuery):
     mavzu = topic
     max_pages = int(max_pages)
 
-    page_count = {"10": 0, "15": 2, "20": 3, "25": 4}
+    page_count = {"10": 0, "15": 2, "20": 3, "25": 4,"30":5}
 
     # Fetch user from database
     user = await db.select_user(user_id=user_id)
@@ -600,16 +616,16 @@ async def gg_generate_mustaqil(call: types.CallbackQuery):
             "content": (
                 f"Men seni telegram botga ulaganman. Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
                 f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
-                "Albatta, bajaraman degan so'zlarni yozishing shart emas."
+                "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida bosh joy tashlama"
             )
         }
     ]
 
-    response = await get_response_from_server(history=theme_data)
-    themes = response.get('response', "").split('\n')
+    theme_response = await get_response_from_server(history=theme_data)
+    themes = theme_response.get('response', "").split('\n')
 
     tasks = []
-
+    print(theme_response['response'])
     for theme in themes:
         tasks.append(generate_text_for_theme_mustaqil(user_id, theme, language, page_count, max_pages, ai_history))
 
@@ -671,7 +687,7 @@ async def generate_text_for_theme_mustaqil(user_id, theme, language, page_count,
                     "role": "system",
                     "content": (
                         f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
-                        f"{language} tilida. Matning 700 so'zdan oshmasin. "
+                        f"{language} tilida. Matning 730 so'zdan kam ham ko'p ham bo'lmasin. "
                         f"Bu oldingi matning: {previous_text}. Yangi, farqli matn yozib ber."
                     )
                 }

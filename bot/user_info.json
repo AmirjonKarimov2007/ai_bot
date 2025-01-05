@@ -1,8 +1,8 @@
 {
     "1612270615": {
-        "mavzu": "olimlarning turish turmushi",
-        "min": 20,
-        "max": 25
+        "mavzu": "inson",
+        "min": 25,
+        "max": 30
     },
     "5955950834": {
         "mavzu": "pul",
@@ -20,7 +20,7 @@
         "max": 10
     },
     "5921666951": {
-        "mavzu": "Qo&#x27;llanma \ud83d\udcc4",
+        "mavzu": "Qo&#x27;llanma 📄",
         "min": 20,
         "max": 25
     }

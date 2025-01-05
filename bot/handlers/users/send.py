@@ -49,21 +49,21 @@ async def bot_start(message: types.Message):
         await message.reply("Foydalanuvchi ma'lumotlari topilmadi.", reply_markup=kb.main())
 
 
-@dp.callback_query_handler(IsUser(),text='select_service_package')
-async def get_premium_func(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    with open('data.json', 'r') as file:
-        data = json.load(file)
-    max_balance = data['services']['Referat']
-    profile = await db.select_user(user_id=user_id)
-    if profile and max_balance:
-        user_balance = profile[0]['balance']
-        user_balance = int(user_balance)
-        max_balance = int(max_balance)
-        if user_balance < max_balance:
-            await bot.answer_callback_query(call.id, text=f"Xizmatga Pul sarflash uchun hisobingizda kamida {max_balance} so'm bo'lishi kerak!", show_alert=True)
-        elif user_balance>=max_balance:
-            await call.message.edit_text(text='Xizmatni Tanlang!',reply_markup=service_keyboard(user_balance))
+# @dp.callback_query_handler(IsUser(),text='select_service_package')
+# async def get_premium_func(call: types.CallbackQuery):
+#     user_id = call.from_user.id
+#     with open('data.json', 'r') as file:
+#         data = json.load(file)
+#     max_balance = data['services']['Referat']
+#     profile = await db.select_user(user_id=user_id)
+#     if profile and max_balance:
+#         user_balance = profile[0]['balance']
+#         user_balance = int(user_balance)
+#         max_balance = int(max_balance)
+#         if user_balance < max_balance:
+#             await bot.answer_callback_query(call.id, text=f"Xizmatga Pul sarflash uchun hisobingizda kamida {max_balance} so'm bo'lishi kerak!", show_alert=True)
+#         elif user_balance>=max_balance:
+#             await call.message.edit_text(text='Xizmatni Tanlang!',reply_markup=service_keyboard(user_balance))
         
             
 

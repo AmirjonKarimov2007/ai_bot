@@ -183,9 +183,9 @@ async def add_page(call: types.CallbackQuery):
         data = json.load(file)
     min = data[str(call.from_user.id)]['min']
     max = data[str(call.from_user.id)]['max']
-    if max==25 and min==20:
-        await bot.answer_callback_query(callback_query_id=call.id,text="Sahifalar soni 25-20 dan ko'p bo'lmaydi❗️",show_alert=True)
-    elif max<25 and min<20:
+    if max==30 and min==25:
+        await bot.answer_callback_query(callback_query_id=call.id,text="Sahifalar soni 30-25 dan ko'p bo'lmaydi❗️",show_alert=True)
+    elif max<30 and min<25:
         data[str(call.from_user.id)]['min']+=5
         data[str(call.from_user.id)]['max']+=5
         await bot.answer_callback_query(callback_query_id=call.id,text=f"✅Sahifalar soni 5ga ochirildi")
