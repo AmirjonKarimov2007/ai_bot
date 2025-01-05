@@ -414,8 +414,13 @@ async def success_handler(call: types.CallbackQuery):
     data = call.data.rsplit(":")
     service = data[1]
     if service=="REFEAT":
+        with open("data.json", "r") as f:
+            user_data = json.load(f)
         await gg_generate_referat(call=call)
     elif service=="MUSTAQIL ISH":
+        with open("data.json", "r") as f:
+            user_data = json.load(f)
+            
         print(service)
         await gg_generate_mustaqil(call=call)
         
