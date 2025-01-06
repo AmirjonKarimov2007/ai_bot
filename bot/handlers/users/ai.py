@@ -479,7 +479,6 @@ async def gg_generate_referat(call: types.CallbackQuery):
     max_pages = page_numbers.group(2).replace('gacha', '')
     topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
     
-    print(f"Start: {time.hour}:{time.minute}:{time.second}")
 
     user_id = call.from_user.id
     data = call.data.split(":")
@@ -557,8 +556,6 @@ async def gg_generate_referat(call: types.CallbackQuery):
     with open("ai_history.json", "w") as f:
         json.dump(ai_history, f, indent=4)
 
-    time = datetime.datetime.now(uzbekistan_tz)
-    print(f"End: {time.hour}:{time.minute}:{time.second}")
 
 # Generatsiya qilgan matni bo'yicha  matn generatsiya qiladi.
 async def generate_text_for_theme_referat(user_id, theme, language, page_count, max_pages, ai_history):
@@ -609,7 +606,6 @@ async def gg_generate_mustaqil(call: types.CallbackQuery):
     max_pages = page_numbers.group(2).replace('gacha', '')
     topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
     
-    print(f"Start: {time.hour}:{time.minute}:{time.second}")
 
     user_id = call.from_user.id
     data = call.data.split(":")
@@ -655,7 +651,6 @@ async def gg_generate_mustaqil(call: types.CallbackQuery):
     themes = theme_response.get('response', "").split('\n')
 
     tasks = []
-    print(theme_response['response'])
     for theme in themes:
         tasks.append(generate_text_for_theme_mustaqil(user_id, theme, language, page_count, max_pages, ai_history))
 
@@ -688,7 +683,6 @@ async def gg_generate_mustaqil(call: types.CallbackQuery):
         json.dump(ai_history, f, indent=4)
 
     time = datetime.datetime.now(uzbekistan_tz)
-    print(f"End: {time.hour}:{time.minute}:{time.second}")
 async def generate_text_for_theme_mustaqil(user_id, theme, language, page_count, max_pages, ai_history):
     # Agar theme lug‘atda mavjud bo‘lmasa, uni bo‘sh qiymat bilan boshlash
     if theme not in ai_history[str(user_id)]:
@@ -885,7 +879,6 @@ async def gg_generate_bayon(call: types.CallbackQuery):
     max_pages = page_numbers.group(2).replace('gacha', '')
     topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
     
-    print(f"Start: {time.hour}:{time.minute}:{time.second}")
 
     user_id = call.from_user.id
     data = call.data.split(":")
@@ -926,7 +919,6 @@ async def gg_generate_bayon(call: types.CallbackQuery):
     await asyncio.sleep(0.5)
 
     time = datetime.datetime.now(uzbekistan_tz)
-    print(f"End: {time.hour}:{time.minute}:{time.second}")
 
 async def generate_text_for_theme_bayon(user_id, theme, language, page_count, max_pages):
     if page_count[str(max_pages)] == 0:
@@ -948,13 +940,11 @@ async def generate_text_for_theme_bayon(user_id, theme, language, page_count, ma
 
 
 async def gg_generate_tabrik(call: types.CallbackQuery):
-    time = datetime.datetime.now(uzbekistan_tz)
     message_text = call.message.text
     topic_line = next((line for line in message_text.split('\n') if line.startswith("Tabrik Egasining ismi: ")), "")
 
     topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
     
-    print(f"Start: {time.hour}:{time.minute}:{time.second}")
 
     user_id = call.from_user.id
     data = call.data.split(":")
@@ -977,6 +967,4 @@ async def gg_generate_tabrik(call: types.CallbackQuery):
     await msg.delete()
     await call.message.answer(text=f"<b>{theme_response['response']}</b>")
 
-    time = datetime.datetime.now(uzbekistan_tz)
-    print(f"End: {time.hour}:{time.minute}:{time.second}")
 
