@@ -16,7 +16,7 @@ import uuid
 
 
 
-CHANNEL = "@Uzbekcoders_uz_sertifikatlar"
+CHANNEL = "-1002499899222"
 
 @dp.callback_query_handler(IsUser(), text="hisobni_toldirish",state='*')
 async def get_chek_callback(call: types.CallbackQuery):
