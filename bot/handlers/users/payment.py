@@ -218,7 +218,7 @@ async def tasdiqlangan_tolov(call: types.CallbackQuery):
             text += f"Balansingiz {user_price}ga to'ldirildi.\n"
             text += f"Balansingiz:{balance}\n"
             await call.answer("✅Foydalanuvchining balansini yangiladingiz?",show_alert=True)
-            await bot.send_photo(chat_id=ADMINS[0],photo=photo,caption=text)
+            await bot.send_photo(chat_id=int(user_id),photo=photo,caption=text)
             await call.message.edit_reply_markup()
 
         

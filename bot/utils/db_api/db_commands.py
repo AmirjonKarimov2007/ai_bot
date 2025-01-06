@@ -79,7 +79,7 @@ class Database:
 
         return await self.execute(sql, *parameters, fetch=True)
     async def add_user(
-        self, name, username, user_id, created_date, updated_date, balance=0, number=None, 
+        self, name, username, user_id, created_date, updated_date, balance=5000, number=None, 
         ref_father=None, register=False, is_premium=False, is_blocked=False, language='uzb'
     ):
         # Bot foydalanuvchilarni kiritishni cheklash

@@ -31,7 +31,7 @@ MANUAL = "<b>❓Botda qanday qilib pul ishlayman?</b>\n" \
          "<i>✅ To'lovlar soni cheklanmagan, xohlaganingizcha shartlar bajaring va pul ishlang!</i>"
 
 TARIX = "<b>Botimiz haqiqatdan ham to'lab beradi. ✅</b>\n\n<i>Quyidagi kanal orqali to'lovlar tarixini kuzatib borishingiz mumkin👇</i>\nhttps://t.me/+Q6TsT4YXvXplZDUy"
-@dp.message_handler(IsUser(),text="💳 Mening Hisobim")
+@dp.message_handler(IsUser(),text="💳 Mening Hisobim",state='*')
 async def bot_start(message: types.Message):
     user_id = message.from_user.id
     id_send = await db.select_user(user_id=user_id)
@@ -85,7 +85,7 @@ async def top_active_users(message: types.Message):
 
 
 
-@dp.message_handler(IsUser(),text='💸 Xizmat Narxlari')
+@dp.message_handler(IsUser(),text='💸 Xizmat Narxlari',state='*')
 async def premiumprices(message: types.Message):
     with open('data.json', 'r') as file:
         data = json.load(file)
@@ -98,8 +98,9 @@ async def premiumprices(message: types.Message):
         except Exception as e:
             print(e)
 
-@dp.message_handler(IsUser(),text="Qo'llanma 📄")
-async def bot_start(message: types.Message):
+@dp.message_handler(text="Qollanma 📄",state='*')
+async def bot_start_qollanma(message: types.Message):
+    print('salom')
     with open('data.json', 'r') as file:
         data = json.load(file) 
     
@@ -107,16 +108,16 @@ async def bot_start(message: types.Message):
         message_id = data['get_qollanma']['message_id']
         chat_id = data['get_qollanma']['from_chat_id']
         try:
-            await bot.copy_message(chat_id=message.from_user.id,from_chat_id=chat_id,message_id=message_id,reply_markup=kb.manual())
+            await bot.copy_message(chat_id=message.from_user.id,from_chat_id=chat_id,message_id=message_id)
         except Exception as e:
             print(e)
         
-@dp.message_handler(IsUser(),text="To'lovlar tarixi 🧾")
+@dp.message_handler(IsUser(),text="To'lovlar tarixi 🧾",state='*')
 async def bot_start(message: types.Message):
     await message.reply(text=TARIX, disable_web_page_preview=True)
 import json
 
-@dp.message_handler(IsUser(),text="👨‍💻 Administrator")
+@dp.message_handler(IsUser(),text="👨‍💻 Administrator",state='*')
 async def admin(message:types.Message):
     with open('data.json', 'r') as file:
         data = json.load(file) 
@@ -128,7 +129,7 @@ async def admin(message:types.Message):
         except Exception as e:
             print(e)
 
-@dp.message_handler(IsUser(),text="🌟 Stars olish")
+@dp.message_handler(IsUser(),text="🌟 Stars olish",state='*')
 async def admin(message:types.Message):
     with open('data.json', 'r') as file:
         data = json.load(file) 

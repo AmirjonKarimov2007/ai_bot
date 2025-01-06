@@ -8,7 +8,7 @@ class Keyboards:
         topusers = types.KeyboardButton("TOP foydalanuvchilar")
         prices = types.KeyboardButton("💸 Xizmat Narxlari")
         balans = types.KeyboardButton("💳 Mening Hisobim")
-        Manual = types.KeyboardButton("Qo'llanma 📄")
+        Manual = types.KeyboardButton("Qollanma 📄")
         Administrator = types.KeyboardButton("👨‍💻 Administrator")
         menu.add(foydalanish),menu.add(referal,topusers),menu.add(prices,balans)
         return menu.add(Manual,Administrator)

@@ -727,111 +727,6 @@ async def generate_text_for_theme_mustaqil(user_id, theme, language, page_count,
             with open("ai_history.json", "w") as f:
                 json.dump(ai_history, f, indent=4)
 
-async def gg_generate_bayon(call: types.CallbackQuery):
-    time = datetime.datetime.now(uzbekistan_tz)
-    message_text = call.message.text
-    topic_line = next((line for line in message_text.split('\n') if line.startswith("📃Mavzu:")), "")
-    page_range_line = next((line for line in message_text.split('\n') if line.startswith("📰Sahifalar soni:")), "")
-    page_numbers = re.search(r'(\d+dan)\s*–\s*(\d+gacha)', page_range_line)
-
-    max_pages = page_numbers.group(2).replace('gacha', '')
-    topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
-    
-    print(f"Start: {time.hour}:{time.minute}:{time.second}")
-
-    user_id = call.from_user.id
-    data = call.data.split(":")
-    service = data[1]
-    mavzu = topic
-    max_pages = int(max_pages)
-
-    page_count = {"10": 0, "15": 2, "20": 3, "25": 4,"30":5}
-
-    # Fetch user from database
-    user = await db.select_user(user_id=user_id)
-    language = user[0].get('language', "")
-
-    msg = await call.message.edit_text("⏳")
-
-    # Generate themes
-    theme_data = [
-        {
-            "role": "user",
-            "content": (
-                f"Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
-                f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
-                "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida hech qanday bosh joy tashlama"
-            )
-        }
-    ]
-    theme_response = await get_response_from_server(history=theme_data)
-    await call.message.answer(text=f"<b>{theme_response['response']}</b>")
-    themes = theme_response.get('response', "").split('\n')
-
-    tasks = []
-    await msg.delete()
-    for theme in themes:
-        tasks.append(generate_text_for_theme_bayon(user_id, theme, language, page_count, max_pages))
-
-    await asyncio.gather(*tasks)
-
-    await asyncio.sleep(0.5)
-
-    time = datetime.datetime.now(uzbekistan_tz)
-    print(f"End: {time.hour}:{time.minute}:{time.second}")
-
-async def generate_text_for_theme_bayon(user_id, theme, language, page_count, max_pages):
-    if page_count[str(max_pages)] == 0:
-        history = [
-            {
-                "role": "system",
-                "content": (
-                    f"{theme} mavzusida matn kerak. "
-                    f"{language} tilida. Matn uzunligi: max_length:4080 bo'lishi kerak va undan ochib ketmasligi kerak. "
-                    "Faqat kerakli matnlarni yubor.albatta,bajaraman yoki shunga o'xshagan narsalarni yuborma.faqatgina matnni yubor."
-                )
-            }
-        ]
-        
-        response = await get_response_from_server(history=history)
-        matn = f"**{theme}**\n\n{response['response']}"
-        await bot.send_chat_action(int(user_id), "typing")
-        await bot.send_message(chat_id=int(user_id),text=matn,parse_mode=types.ParseMode.MARKDOWN)
-
-
-async def gg_generate_tabrik(call: types.CallbackQuery):
-    time = datetime.datetime.now(uzbekistan_tz)
-    message_text = call.message.text
-    topic_line = next((line for line in message_text.split('\n') if line.startswith("Tabrik Egasining ismi: ")), "")
-
-    topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
-    
-    print(f"Start: {time.hour}:{time.minute}:{time.second}")
-
-    user_id = call.from_user.id
-    data = call.data.split(":")
-    service = data[1]
-    ega = topic
-    msg = await call.message.edit_text("⏳")
-
-    # Generate themes
-    tabrik_prompt = [
-        {
-            "role": "user",
-            "content": (
-                f"Menga {ega}ning tug'gilgan kuni  uchun chiroyli tabrik kerak, bu tabrik oldin takrorlanmagan va jarangdor bo'lishi kerak.bu tabrik uning hech kimning esidan chiqmasligi kerak va u uzun bo'lsin stikerlardan ham foydalan."
-                "Albatta, bajaraman degan so'zlarni yozishing shart emas.tabrik meni nomimdan bo'lishi kerak va uni odam yozgandek bo'lib ko'rinishi kerak."
-            )
-        }
-    ]
-    theme_response = await get_response_from_server(history=tabrik_prompt)
-
-    await msg.delete()
-    await call.message.answer(text=f"<b>{theme_response['response']}</b>")
-
-    time = datetime.datetime.now(uzbekistan_tz)
-    print(f"End: {time.hour}:{time.minute}:{time.second}")
-
 
 
 # Orqga tugmasi bosilganda ishlaydigan handler
@@ -970,4 +865,118 @@ async def handle_tabrik_message(message: types.Message, state: FSMContext):
     except Exception as e:
         await state.finish()
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:52:error:{e}")
+
+
+
+# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
+# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
+# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
+# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
+# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
+# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
+
+async def gg_generate_bayon(call: types.CallbackQuery):
+    time = datetime.datetime.now(uzbekistan_tz)
+    message_text = call.message.text
+    topic_line = next((line for line in message_text.split('\n') if line.startswith("📃Mavzu:")), "")
+    page_range_line = next((line for line in message_text.split('\n') if line.startswith("📰Sahifalar soni:")), "")
+    page_numbers = re.search(r'(\d+dan)\s*–\s*(\d+gacha)', page_range_line)
+
+    max_pages = page_numbers.group(2).replace('gacha', '')
+    topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
+    
+    print(f"Start: {time.hour}:{time.minute}:{time.second}")
+
+    user_id = call.from_user.id
+    data = call.data.split(":")
+    service = data[1]
+    mavzu = topic
+    max_pages = int(max_pages)
+
+    page_count = {"10": 0, "15": 2, "20": 3, "25": 4,"30":5}
+
+    # Fetch user from database
+    user = await db.select_user(user_id=user_id)
+    language = user[0].get('language', "")
+
+    msg = await call.message.edit_text("⏳")
+
+    # Generate themes
+    theme_data = [
+        {
+            "role": "user",
+            "content": (
+                f"Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
+                f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
+                "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida hech qanday bosh joy tashlama"
+            )
+        }
+    ]
+    theme_response = await get_response_from_server(history=theme_data)
+    await call.message.answer(text=f"<b>{theme_response['response']}</b>")
+    themes = theme_response.get('response', "").split('\n')
+
+    tasks = []
+    await msg.delete()
+    for theme in themes:
+        tasks.append(generate_text_for_theme_bayon(user_id, theme, language, page_count, max_pages))
+
+    await asyncio.gather(*tasks)
+
+    await asyncio.sleep(0.5)
+
+    time = datetime.datetime.now(uzbekistan_tz)
+    print(f"End: {time.hour}:{time.minute}:{time.second}")
+
+async def generate_text_for_theme_bayon(user_id, theme, language, page_count, max_pages):
+    if page_count[str(max_pages)] == 0:
+        history = [
+            {
+                "role": "system",
+                "content": (
+                    f"{theme} mavzusida matn kerak. "
+                    f"{language} tilida. Matn uzunligi: max_length:4080 bo'lishi kerak va undan ochib ketmasligi kerak. "
+                    "Faqat kerakli matnlarni yubor.albatta,bajaraman yoki shunga o'xshagan narsalarni yuborma.faqatgina matnni yubor."
+                )
+            }
+        ]
+        
+        response = await get_response_from_server(history=history)
+        matn = f"**{theme}**\n\n{response['response']}"
+        await bot.send_chat_action(int(user_id), "typing")
+        await bot.send_message(chat_id=int(user_id),text=matn,parse_mode=types.ParseMode.MARKDOWN)
+
+
+async def gg_generate_tabrik(call: types.CallbackQuery):
+    time = datetime.datetime.now(uzbekistan_tz)
+    message_text = call.message.text
+    topic_line = next((line for line in message_text.split('\n') if line.startswith("Tabrik Egasining ismi: ")), "")
+
+    topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
+    
+    print(f"Start: {time.hour}:{time.minute}:{time.second}")
+
+    user_id = call.from_user.id
+    data = call.data.split(":")
+    service = data[1]
+    ega = topic
+    msg = await call.message.edit_text("⏳")
+
+    # Generate themes
+    tabrik_prompt = [
+        {
+            "role": "user",
+            "content": (
+                f"Menga {ega}ning tug'gilgan kuni  uchun chiroyli tabrik kerak, bu tabrik oldin takrorlanmagan va jarangdor bo'lishi kerak.bu tabrik uning hech kimning esidan chiqmasligi kerak va u uzun bo'lsin stikerlardan ham foydalan."
+                "Albatta, bajaraman degan so'zlarni yozishing shart emas.tabrik meni nomimdan bo'lishi kerak va uni odam yozgandek bo'lib ko'rinishi kerak."
+            )
+        }
+    ]
+    theme_response = await get_response_from_server(history=tabrik_prompt)
+
+    await msg.delete()
+    await call.message.answer(text=f"<b>{theme_response['response']}</b>")
+
+    time = datetime.datetime.now(uzbekistan_tz)
+    print(f"End: {time.hour}:{time.minute}:{time.second}")
 
