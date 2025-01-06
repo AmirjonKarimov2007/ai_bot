@@ -23,6 +23,12 @@ def success_keyboards(service):
     markup.insert(InlineKeyboardButton(text="✏️O'zgartirish",callback_data=f"edit:{service}"))
     return markup
 
+def success_keyboards_bayon(service):
+    markup = InlineKeyboardMarkup(3)
+    markup = InlineKeyboardMarkup(row_width=3)
+    markup.insert(InlineKeyboardButton(text="✅Tayyorlash",callback_data=f"success:{service}"))
+    markup.insert(InlineKeyboardButton(text="🚫Rad qilish",callback_data=f"cancel:{service}"))
+    return markup
 
 
 
