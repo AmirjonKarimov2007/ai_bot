@@ -968,3 +968,10 @@ async def gg_generate_tabrik(call: types.CallbackQuery):
     await call.message.answer(text=f"<b>{theme_response['response']}</b>")
 
 
+# Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI 
+# Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI 
+# Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI 
+# Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI Taqdimot AI 
+
+
+
