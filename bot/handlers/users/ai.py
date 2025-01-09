@@ -586,7 +586,7 @@ async def generate_text_for_theme_referat(user_id, theme, language, page_count, 
                     "role": "system",
                     "content": (
                         f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
-                        f"{language} tilida. Matning 700 so'zdan kam ham ko'p ham bo'lmasin. "
+                        f"{language} tilida. Matning 700 so'zdan kam ham ko'p ham bo'lmasligi shart.xulosa yozishing shart emas"
                         f"Bu oldingi matning: {previous_text}. Yangi, farqli matn yozib ber."
                     )
                 }
@@ -710,8 +710,8 @@ async def generate_text_for_theme_mustaqil(user_id, theme, language, page_count,
                 {
                     "role": "system",
                     "content": (
-                        f"{theme} mavzusida matn kerak. "
-                        f"{language} tilida. Matning 700 so'zdan kam ham ko'p ham bo'lmasin. "
+                        f" {theme} mavzusida matn kerak. "
+                        f"{language} tilida. Matning 700 so'zdan kam ham ko'p ham bo'lmasligi shart.xulosa yozishing shart emas"
                         f"Bu oldingi matning: {previous_text}. Yangi, farqli matn yozib ber."
                     )
                 }
