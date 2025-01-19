@@ -40,11 +40,8 @@ async def get_chek_callback(call: types.CallbackQuery):
 * 50 000 so'm to'lov qilsangiz, +15000 so'm bonus🎁
 
 <b><i>Quyidagi karta raqamiga to'lov qiling va chekni skrenshot qilib oling (COPY qilish uchun karta raqam ustiga bosing).</i></b>
-<code>5614 6824 1453 1063</code>
-<b>Ergashev Sardor |Uzcard</b>
-
-<code>9860 1801 0909 0923</code>
-<b>Ergashev Sardor | Humo</b>
+<code>9860 0801 5186 6938</code>
+<b>Amirjon Karimov |Humo</b>
 """
     markup = InlineKeyboardMarkup(row_width=1)
     markup.insert(InlineKeyboardButton(text="📨Chekni yuborish", callback_data="payment"))
@@ -72,12 +69,8 @@ async def get_chek(message: types.Message):
 * 50 000 so'm to'lov qilsangiz, +15000 so'm bonus🎁
 
 <b><i>Quyidagi karta raqamiga to'lov qiling va chekni skrenshot qilib oling (COPY qilish uchun karta raqam ustiga bosing).</i></b>
-<code>5614 6824 1453 1063</code>
-<b>Ergashev Sardor |Uzcard</b>
-
-<code>9860 1801 0909 0923</code>
-<b>Ergashev Sardor | Humo</b>
-
+<code>9860 0801 5186 6938</code>
+<b>Amirjon Karimov |Humo</b>
 """
 
     markup = InlineKeyboardMarkup(row_width=1)
