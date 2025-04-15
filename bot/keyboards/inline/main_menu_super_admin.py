@@ -36,10 +36,11 @@ def edit_services_prices():
     services_prices = data['services']
     
     for k, v in services_prices.items():
+        print(k)
         services.insert(
             InlineKeyboardButton(
-                text=f"{k.replace('_', ' ')} - {v} so'm", 
-                callback_data=f"services_edit:{k}"
+                text=f"{k.replace('_', ' ')}", 
+                callback_data=f"select_service_package:{k}"
             )
         )
     services.add(InlineKeyboardButton(text="⬅️ Orqaga", callback_data="settings"))

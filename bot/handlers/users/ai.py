@@ -170,7 +170,7 @@ async def handle_mustaqil_author_NAME_message(message: types.Message, state: FSM
     try:
         await db.update_user_author(author=author,user_id=int(message.from_user.id))
         status = await check_info(user_id=message.from_user.id)
-    
+        
         if status==True:
             caption = await text_generator(
                 type=service,

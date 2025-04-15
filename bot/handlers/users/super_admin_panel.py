@@ -649,16 +649,31 @@ async def edit_primium_prices(call: types.CallbackQuery):
     await call.answer(cache_time=1)
     await call.message.edit_text('Qaysi Xizmat o\'zgartirmoqchisiz?',reply_markup=edit_services_prices())
     
+@dp.callback_query_handler(IsSuperAdmin(),text_contains="select_service_package:")
+async def select_service_of_ai(call: types.CallbackQuery):
+    await call.answer(cache_time=1)
+    package = call.data.rsplit(":")[1]
+    with open('data.json', 'r') as file:
+        data = json.load(file)
+    services_prices = data['services'][package]
+    markup =  InlineKeyboardMarkup(row_width=1)
+    for k,v in services_prices.items():
+        markup.add(InlineKeyboardButton(text=f"{k}-{int(k)+5}->{v} so'm",callback_data=f'services_edit:{package}:{k}'))
+    markup.insert(InlineKeyboardButton(text=f"⬅️Orqaga",callback_data=f"edit_services_prices"))
+    await call.message.edit_text("Iltimos endi o'zgartimoqchi bo'lgan xizmatingizning tarifnini tanlang!",reply_markup=markup)
 
 
 @dp.callback_query_handler(IsSuperAdmin(),text_contains='services_edit:')
 async def edit_premium__price(call: types.CallbackQuery,state: FSMContext):
-    await state.finish()    
+    await state.finish()
     await call.answer(cache_time=1)
     dataa = call.data.rsplit(":")
     service = dataa[1]
-    if service:
-        await state.update_data({'service':service})
+    package = dataa[2]
+    if service and package:
+        await state.update_data({'service':service,
+                                 'package':package
+                                 })
         await call.message.edit_text('💎Xizmat Narxini menga yuboring va uni joriy qilaman.\n\nEtibor bering faqat raqamlardan tashkil topsin va va belgilardan iborat bo\'lmasin',reply_markup=back_to_main_menu)
         await SuperAdminState.SUPER_ADMIN_UPDATE_SUM_PREMIUM_MONTH.set()
 
@@ -668,10 +683,11 @@ async def change_premium(message: types.Message,state:FSMContext):
     price = message.text
     if price and price.isdigit():
         service = service_data.get('service')
+        package = service_data.get('package')
         with open('data.json','r') as file:
             data = json.load(file)
         if service and service:
-            data['services'][service]=price
+            data['services'][service][package]=price
             with open('data.json', 'w') as file:
                     json.dump(data, file, indent=4)
             await message.answer(text=f'<b>✅{service.title()} Xizmat  Narxi yangilandi!</b>',reply_markup=main_menu_for_super_admin)
