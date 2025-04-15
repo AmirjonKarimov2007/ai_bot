@@ -663,6 +663,8 @@ async def select_service_of_ai(call: types.CallbackQuery):
     await call.message.edit_text("Iltimos endi o'zgartimoqchi bo'lgan xizmatingizning tarifnini tanlang!",reply_markup=markup)
 
 
+
+
 @dp.callback_query_handler(IsSuperAdmin(),text_contains='services_edit:')
 async def edit_premium__price(call: types.CallbackQuery,state: FSMContext):
     await state.finish()
