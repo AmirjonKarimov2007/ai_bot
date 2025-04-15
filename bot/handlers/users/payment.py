@@ -8,7 +8,6 @@ from aiogram.types import InlineKeyboardButton,InlineKeyboardMarkup
 from keyboards.inline.main_keyboard import prices_keybaord
 from data.config import ADMINS
 import asyncio
-from photolink import PhotoLink
 from io import BytesIO
 import tempfile  
 import  os
