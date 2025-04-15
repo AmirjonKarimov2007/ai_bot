@@ -10,7 +10,8 @@ class Keyboards:
         balans = types.KeyboardButton("💳 Mening Hisobim")
         Manual = types.KeyboardButton("Qollanma 📄")
         Administrator = types.KeyboardButton("👨‍💻 Administrator")
-        menu.add(foydalanish),menu.add(referal,topusers),menu.add(prices,balans)
+        promocode = types.KeyboardButton("🔑Promo Kod")
+        menu.add(foydalanish),menu.add(referal,topusers),menu.add(prices,balans),menu.add(promocode)
         return menu.add(Manual,Administrator)
     
     def contact(self):

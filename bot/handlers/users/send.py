@@ -129,11 +129,154 @@ async def admin(message:types.Message):
         except Exception as e:
             print(e)
 
-@dp.message_handler(IsUser(),text="🌟 Stars olish",state='*')
-async def admin(message:types.Message):
-    with open('data.json', 'r') as file:
-        data = json.load(file) 
-    if data['get_stars']['message_id'] and data['get_stars']['from_chat_id']:
-        message_id = data['get_stars']['message_id']
-        chat_id = data['get_stars']['from_chat_id']
-        await bot.copy_message(chat_id=message.from_user.id,from_chat_id=chat_id,message_id=message_id)
+
+
+
+
+# PromoCode olish
+from data.config import PROMOCODE_CHANNEL
+from states.admin_state import SuperAdminState
+from aiogram.dispatcher import FSMContext
+
+# PROMOCode PROMOCODE PROMOCODE PROMOCODE PROMOCODE PROMOCODE
+# PROMOCode PROMOCODE PROMOCODE PROMOCODE PROMOCODE PROMOCODE
+# PROMOCode PROMOCODE PROMOCODE PROMOCODE PROMOCODE PROMOCODE
+# PROMOCode PROMOCODE PROMOCODE PROMOCODE PROMOCODE PROMOCODE
+from aiogram.types import *
+import asyncio
+async def check_promocode(promocode,user_id):
+    
+    with open('promo_codes.json', 'r') as file:
+        data = json.load(file)
+    if 'promo_codes' in data and promocode in data['promo_codes']:
+        users_count = len(data['promo_codes'][promocode]['users'])
+        max_count = int(data['promo_codes'][promocode]['count'])
+        if promocode in data['promo_codes'] and users_count<max_count and user_id not in data['promo_codes'][promocode]['users']:
+            return True
+        elif user_id in data['promo_codes'][promocode]['users']:
+            return "busy"
+        elif users_count>=max_count:
+            return 'full'
+        else:
+            return False
+    else:
+        return False
+    
+@dp.message_handler(IsUser(),text="🔑Promo Kod",state='*')
+async def get_promocode(message: types.Message):
+    try:
+        await message.answer("<b>Iltimos sizga berilgan promocodeni kiriting.</b>")
+        await SuperAdminState.GET_PROMOCODE.set()
+    except Exception as e:
+        await bot.send_message(chat_id=ADMINS[0],text="Botda xatolik yuz berdi:60 line,send.py")
+
+@dp.message_handler(IsUser(),content_types=types.ContentType.TEXT,state=SuperAdminState.GET_PROMOCODE)
+async def promocode(message: types.Message,state: FSMContext):
+    promocode = message.text
+    status = await check_promocode(promocode=promocode,user_id=message.from_user.id)
+    if status==True:
+        try:
+            with open('promo_codes.json', 'r') as file:
+                data = json.load(file)
+                if data['promo_codes'][promocode]['status']=='private':
+                    price = int(data['promo_codes'][promocode]['price'])
+                    user = await db.select_user(user_id=message.from_user.id)
+                    balance= user[0]['balance']
+                    data['promo_codes'][promocode].setdefault('users', []).append(message.from_user.id)
+                    await db.update_balances(user_id=message.from_user.id,sum=int(balance)+int(price))
+                    with open('promo_codes.json','w') as file:
+                        json.dump(data,file,indent=4)
+                    await message.answer(f"<b>✅PromoCode Muvaffaqiyatli aktivatsiya bo'ldi va Balansingiz {price} so'mga yangilandi.</b>")
+                    text = f"Foydalanuvchi: {message.from_user.first_name},<code>{promocode} </code>ni aktivatsiya qildi\n\n"
+                    for admin in ADMINS:
+                        await bot.send_message(chat_id=admin,text=text)
+                    await state.finish()
+                else:
+                    price = int(data['promo_codes'][promocode]['price'])
+                    user = await db.select_user(user_id=message.from_user.id)
+                    balance= user[0]['balance']
+                    data['promo_codes'][promocode].setdefault('users', []).append(message.from_user.id)
+                    await db.update_balances(user_id=message.from_user.id,sum=int(balance)+int(price))
+                    with open('promo_codes.json','w') as file:
+                        json.dump(data,file,indent=4)
+                    with open('promo_codes.json', 'r') as file:
+                        data = json.load(file)
+                    users_count = len(data['promo_codes'][promocode]['users'])
+                    max_count = data['promo_codes'][promocode]['count']
+                    bosh_joylar = int(max_count)-int(users_count)
+                    text = f"🎟 Promokod:<code> {promocode}</code>\n"
+                    text += f"💰 Qiymat: <b>{str(price)}</b>\n"
+                    text += f"💰 Foydalanishlar soni: <b>{str(users_count)}</b>\n"
+                    text += f"🗂 Bo'sh Joylar soni: <b>{str(bosh_joylar)}</b>\n"
+                    await message.answer(f"<b>✅PromoCode Muvaffaqiyatli aktivatsiya bo'ldi va Balansingiz {price} so'mga yangilandi.</b>")
+                    markup = InlineKeyboardMarkup(row_width=1)
+                    bot_name = await bot.get_me()
+                    bot_name = bot_name.username
+                    markup.insert(InlineKeyboardButton(text="🤖Botga o'tish",url=f"t.me/{bot_name}"))
+                    try:
+                        await asyncio.sleep(0.25)
+                        with open('promo_codes.json', 'r') as file:
+                            promo_data = json.load(file)
+                        xabar_id = promo_data['promo_codes'][promocode]['message_id']
+                        channel = promo_data['promo_codes'][promocode]['channel']
+                        group_text = f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.first_name}</a> {promocode} promo kodidan foydalandi."
+                        
+                        try:
+                            with open('promo_codes.json', 'r') as file:
+                                promo_data = json.load(file)
+                            xabar_id = promo_data['promo_codes'][promocode]['message_id']
+                            channel = promo_data['promo_codes'][promocode]['channel']
+                            await bot.delete_message(chat_id=channel,message_id=xabar_id)
+                        except Exception as e:
+                            await asyncio.sleep(2)
+                            with open('promo_codes.json', 'r') as file:
+                                promo_data = json.load(file)
+                            xabar_id = promo_data['promo_codes'][promocode]['message_id']
+                            channel = promo_data['promo_codes'][promocode]['channel']
+                            await bot.delete_message(chat_id=channel,message_id=xabar_id)
+                        await asyncio.sleep(1)
+                        xabar = await bot.send_message(chat_id=PROMOCODE_CHANNEL,text=text,reply_markup=markup)
+                        promo_data['promo_codes'][promocode]['channel'] = PROMOCODE_CHANNEL
+                        promo_data['promo_codes'][promocode]['message_id'] = xabar.message_id
+                        with open('promo_codes.json','w') as file:  
+                            json.dump(promo_data,file,indent=4)
+                        try:
+                            await bot.send_message(chat_id='@Arelax_gurpasi',text=group_text,reply_markup=markup)
+                        except:
+                            await asyncio.sleep(1)
+                            await bot.send_message(chat_id='@Arelax_gurpasi',text=group_text,reply_markup=markup)
+                        await asyncio.sleep(1)
+                    except Exception as e:
+                        print(e)
+                        await bot.delete_message(chat_id=channel,message_id=xabar_id)
+                        await asyncio.sleep(1)
+                        await bot.send_message(chat_id=ADMINS[0],text=f"Xatolik:116 line,send.py: {e}")
+                        await asyncio.sleep(1)
+
+                        xabar = await bot.send_message(chat_id=PROMOCODE_CHANNEL,text=text,reply_markup=markup)
+                        promo_data['promo_codes'][promocode]['channel'] = PROMOCODE_CHANNEL
+                        promo_data['promo_codes'][promocode]['message_id'] = xabar.message_id
+                        with open('promo_codes.json','w') as file:  
+                            json.dump(promo_data,file,indent=4)
+
+
+
+                    await state.finish()
+        except Exception as e:
+            await message.answer(f"Xatolik yuz berdi: 59 line send.py:{e}")
+            await state.finish()
+    elif status=='busy':
+        await message.answer(f"<b>❌Siz Allaqachon bu PromoCodedan foydalangansiz.</b>")
+        await state.finish()
+    elif status=='full':
+        await message.answer(f"<b>❌PromoCodeda bo'sh joylar qolmagan!</b>")
+        await state.finish()
+
+    elif status=='None PromoCode':
+        await message.answer(f"<b>❌Uzur lekin bunday PromoCode mavjuda emas.</b>")
+        await state.finish()
+
+    else:
+        await message.answer(text="<b>❌Bunday PromoCode Mavjud emas.</b>")
+        await state.finish()
+    await state.finish()

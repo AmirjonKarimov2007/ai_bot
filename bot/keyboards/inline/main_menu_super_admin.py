@@ -11,6 +11,7 @@ main_menu_for_super_admin.add(InlineKeyboardButton(text="➕ Kanal qo'shish", ca
                               InlineKeyboardButton(text="📝 Adminlarga Xabar yuborish",callback_data="send_message_to_admins"),
                               InlineKeyboardButton(text="📝 Reklama Jo'natish", callback_data="send_advertisement"),
                               InlineKeyboardButton(text="📊 Statistika", callback_data="statistics"),
+                              InlineKeyboardButton(text="🔰PromoCode Yaratish", callback_data="create_new_promo_code"),
                               )
 settings_menu_for_super_admin = InlineKeyboardMarkup(row_width=2)
 settings_menu_for_super_admin.add(

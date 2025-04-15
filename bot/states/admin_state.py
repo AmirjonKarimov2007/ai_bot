@@ -24,5 +24,10 @@ class SuperAdminState(StatesGroup):
     SUPER_ADMIN_UPDATE_SUM_PREMIUM_6_MONTH = State()
     SUPER_ADMIN_UPDATE_SUM_PREMIUM_12_MONTH = State()
 
+    CREATE_PUBLIC_PROMOCODE = State()
+    CREATE_PRIVATE_PROMOCODE = State()
+    GET_PROMOCODE = State()
+
+
 class RegisterState(StatesGroup):
     PhoneNumber = State()

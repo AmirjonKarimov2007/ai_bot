@@ -713,7 +713,161 @@ async def change_premium(message: types.Message,state:FSMContext):
 
 
 
+# Promocode Promocode Promocode Promocode Promocode
 
+
+@dp.callback_query_handler(IsSuperAdmin(),text='create_new_promo_code',state='*')
+async def create_new_promocode(call: types.CallbackQuery):
+    await call.answer(cache_time=1)
+    try:
+        text = "<b>Qanday turdagi PromoCode yaratmoqchisiz?</b>"
+        markup = InlineKeyboardMarkup(row_width=2)
+        markup.insert(InlineKeyboardButton(text="🔒Maxfiy",callback_data="create_private_promocode"))
+        markup.insert(InlineKeyboardButton(text="👥Ommaviy",callback_data="create_public_promocode"))
+        markup.insert(InlineKeyboardButton(text="⬅️Orqaga",callback_data="back_to_main_menu"))
+        await call.message.edit_text(text=text,reply_markup=markup)
+    except Exception as e:
+        await call.message.answer(f"Botda xatolik yuz berdi:{e},superadmin.py line 785")
+
+
+@dp.callback_query_handler(IsSuperAdmin(),text='create_private_promocode',state='*')
+async def private_promocode(call: types.CallbackQuery):
+    await call.answer(cache_time=1)
+    try:
+        text = "<b>Yaxshi Maxfiy promo necha kishilik bo'lishi va nech puldan bo'lishini yuboring.</b>"
+        markup = InlineKeyboardMarkup(row_width=1)
+        markup.insert(InlineKeyboardButton(text="⬅️Orqaga",callback_data="create_new_promo_code"))
+        await call.message.edit_text(text=text,reply_markup=markup)
+        await SuperAdminState.CREATE_PRIVATE_PROMOCODE.set()
+    except:
+        await call.message.answer('Botda xatolik yuz berdi.Boshqatdan urinib koring')
+from main import generate_unique_promo_code
+
+@dp.message_handler(IsSuperAdmin(), content_types=types.ContentType.TEXT, state=SuperAdminState.CREATE_PRIVATE_PROMOCODE)
+async def generate_promo_code_for_private(message: types.Message, state: FSMContext):
+    data = message.text.rsplit(",")
+    
+    # Ma'lumotlar sonini tekshirish
+    if len(data) < 2:
+        await message.answer("Iltimos, to'g'ri formatda kiriting: Odamlar soni, PromoCode Narxi")
+        return
+
+    person_count = data[0].strip()
+    promo_price = data[1].strip()
+    
+    # Kiritilgan qiymatlarni tekshirish
+    if not person_count.isdigit() or not promo_price.isdigit() or int(person_count) <= 0 or int(promo_price) <= 0:
+        await message.answer("Iltimos, musbat sonlarni kiriting: <Odamlar soni>, <PromoCode Narxi>")
+        return
+
+    promo_code = generate_unique_promo_code()
+
+    try:
+        # Faylni o'qish
+        with open('promo_codes.json', 'r') as file:
+            promo_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        promo_data = {'promo_codes': {}}
+    promo_data = {'promo_codes': {}}
+    # Yangi promo-kodni qo'shish
+    promo_data['promo_codes'][promo_code] = {
+        "count": int(person_count),
+        "price": int(promo_price),
+        "users": [],
+        "status": "private"
+    }
+
+    # Faylga yozish
+    with open('promo_codes.json', 'w') as file:
+        json.dump(promo_data, file, indent=4)
+
+    await message.answer(f"Maxfiy PromoCodingiz Muvaffaqiyatli yaratildi: <code>{promo_code}</code>")
+    await state.finish()
+ 
+
+
+
+
+@dp.callback_query_handler(IsSuperAdmin(),text='create_public_promocode',state='*')
+async def public_promocode(call: types.CallbackQuery):
+    await call.answer(cache_time=1)
+    try:
+        text = "<b>Yaxshi Ommaviy promo necha kishilik bo'lishi kerak va necha puldan bo'lishi kerak.</b>"
+        markup = InlineKeyboardMarkup(row_width=1)
+        markup.insert(InlineKeyboardButton(text="⬅️Orqaga",callback_data="create_new_promo_code"))
+        await call.message.edit_text(text=text,reply_markup=markup)
+        await SuperAdminState.CREATE_PUBLIC_PROMOCODE.set()
+    except:
+        await call.message.answer('Botda xatolik yuz berdi.Boshqatdan urinib koring')
+
+from data.config import PROMOCODE_CHANNEL
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+@dp.message_handler(IsSuperAdmin(), content_types=types.ContentType.TEXT, state=SuperAdminState.CREATE_PUBLIC_PROMOCODE)
+async def generate_promo_code_for_public(message: types.Message, state: FSMContext):
+    data = message.text.rsplit(",")
+
+    # Input validation
+    if len(data) < 2:
+        await message.answer("Iltimos, to'g'ri formatda kiriting: Odamlar soni, PromoCode Narxi")
+        return
+
+    person_count = data[0].strip()
+    promo_price = data[1].strip()
+
+    if not person_count.isdigit() or not promo_price.isdigit() or int(person_count) <= 0 or int(promo_price) <= 0:
+        await message.answer("Iltimos, musbat sonlarni kiriting: <Odamlar soni>, <PromoCode Narxi>")
+        return
+
+    promo_code = generate_unique_promo_code()
+
+    # Faylni o'qish yoki boshlang'ich tuzilmani yaratish
+    try:
+        with open('promo_codes.json', 'r') as file:
+            promo_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        promo_data = {'promo_codes': {}}
+
+    # Yangi promo-kodni qo'shish
+    promo_data['promo_codes'][promo_code] = {
+        "count": int(person_count),
+        "price": int(promo_price),
+        "users": [],
+        "status": "public",
+        "message_id":"",
+        "channel":""
+    }
+
+    # Faylga yozish
+    with open('promo_codes.json', 'w') as file:
+        json.dump(promo_data, file, indent=4)
+
+    # Ma'lumotlarni tayyorlash
+    users_count = len(promo_data['promo_codes'][promo_code]['users'])
+    max_count = promo_data['promo_codes'][promo_code]['count']
+    bosh_joylar = max_count - users_count
+
+    text = (
+        f"🎟 Promokod: <code>{promo_code}</code>\n"
+        f"💰 Qiymat: <b>{promo_price}</b>\n"
+        f"💰 Foydalanishlar soni: <b>{users_count}</b>\n"
+        f"🗂 Bo'sh Joylar soni: <b>{bosh_joylar}</b>\n"
+    )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    bot_name = (await bot.get_me()).username
+    markup.insert(InlineKeyboardButton(text="🤖 Botga o'tish", url=f"t.me/{bot_name}"))
+
+    # Javoblar yuborish
+    await message.answer(f"✅ Ommaviy PromoCodingiz muvaffaqiyatli yaratildi: <code>{promo_code}</code>")
+    xabar = await bot.send_message(chat_id=PROMOCODE_CHANNEL, text=text, reply_markup=markup)
+    with open('promo_codes.json', 'r') as file:
+            promo_data = json.load(file)
+    promo_data['promo_codes'][promo_code]['message_id']=xabar.message_id
+    promo_data['promo_codes'][promo_code]['channel']=PROMOCODE_CHANNEL
+    with open('promo_codes.json', 'w') as file:
+        json.dump(promo_data, file, indent=4)
+    await state.finish()
 
 
 
