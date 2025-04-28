@@ -179,7 +179,7 @@ async def add_page(call: types.CallbackQuery):
     call_info = call.data.rsplit(":")
     service = call_info[1]
     markup = editable_keyboards(service=service)
-    with open ('user_info.json','r') as file:
+    with open ('user_info.json','r',encoding='utf-8') as file:
         data = json.load(file)
     min = data[str(call.from_user.id)]['min']
     max = data[str(call.from_user.id)]['max']
@@ -200,7 +200,7 @@ async def add_page(call: types.CallbackQuery):
     call_info = call.data.rsplit(":")
     service = call_info[1]
     markup = editable_keyboards(service=service)
-    with open ('user_info.json','r') as file:
+    with open ('user_info.json','r',encoding='utf-8') as file:
         data = json.load(file)
     min = data[str(call.from_user.id)]['min']
     max = data[str(call.from_user.id)]['max']
@@ -224,7 +224,7 @@ async def add_page(call: types.CallbackQuery):
     call_info = call.data.rsplit(":")
     service = call_info[1]
     markup = editable_keyboards(service=service)
-    with open ('user_info.json','r') as file:
+    with open ('user_info.json','r',encoding='utf-8') as file:
         data = json.load(file)
     min = data[str(call.from_user.id)]['min']
     max = data[str(call.from_user.id)]['max']
