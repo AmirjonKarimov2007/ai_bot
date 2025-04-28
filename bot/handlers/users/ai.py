@@ -25,7 +25,7 @@ from keyboards.inline.boglanish_button import get_premium_keyboard
 
 
 async def text_generator(type,user_id):
-    with open('user_info.json','r') as file:
+    with open('user_info.json','r',encoding='utf-8') as file:
         data = json.load(file)
         mavzu = data[str(user_id)]['mavzu']
         min = data[str(user_id)]['min']
