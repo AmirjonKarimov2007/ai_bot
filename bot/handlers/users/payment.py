@@ -102,6 +102,7 @@ async def send_user_info(message,photo,summa:str,invoice):
     
     caption = f"<b>Xurmatli Admin sizga yangi to'lov mavjud.</b>\n\n"
     caption +=f"<b>👤Foydalanuvchi:<a href='tg://user?id={message.from_user.id}'>{message.from_user.first_name}</a></b>\n"
+    caption +=f"<b>👥Username: <code>{message.from_user.username}</code>\n</b>"
     caption +=f"<b>🪪Telegram ID:<code>{message.from_user.id}</code>\n</b>"
     caption +=f"<b>☎️Telefon Raqam:{phone_number}\n</b>"
     caption +=f"<b>💸Foydalanuvchining Hozirgi Balansi:{balance}\n</b>"
@@ -239,7 +240,7 @@ async def atmen_qilingan_tolov(call: types.CallbackQuery):
             text+=f"🚫To'lovingiz rad etildi.\n\n"
             text+=f"🆘Sababi\n:"
             text+=f"Siz yuborgan rasmda to'lov ma'lumotlari yo'q\n"
-            text+=f"Agar shikoyatingiz bo'lsa admin( @IT_25_1) bilan bog'laning!\n"
+            text+=f"Agar shikoyatingiz bo'lsa admin( @Amirjon_Karimov) bilan bog'laning!\n"
                         
             await call.answer(f"✅Invoys Bekor qilindi qilindi",show_alert=True)
             await bot.send_photo(chat_id=int(user_id),photo=photo,caption=text)
