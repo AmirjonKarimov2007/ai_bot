@@ -1,7 +1,7 @@
 {
     "premium_price": {
         "message_id": "2",
-        "from_chat_id": "-1002486635685"
+        "from_chat_id": "-1002643424480"
     },
     "get_stars": {
         "message_id": "3",
@@ -9,11 +9,11 @@
     },
     "get_qollanma": {
         "message_id": "4",
-        "from_chat_id": "-1002486635685"
+        "from_chat_id": "-1002643424480"
     },
     "administator": {
         "message_id": "3",
-        "from_chat_id": "-1002486635685"
+        "from_chat_id": "-1002643424480"
     },
     "price": {
         "normal_price": "1000",
