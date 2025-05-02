@@ -102,7 +102,7 @@ async def send_user_info(message,photo,summa:str,invoice):
     
     caption = f"<b>Xurmatli Admin sizga yangi to'lov mavjud.</b>\n\n"
     caption +=f"<b>👤Foydalanuvchi:<a href='tg://user?id={message.from_user.id}'>{message.from_user.first_name}</a></b>\n"
-    caption +=f"<b>👥Username: <code>{message.from_user.username}</code>\n</b>"
+    caption +=f"<b>👥Username: @{message.from_user.username} \n</b>"
     caption +=f"<b>🪪Telegram ID:<code>{message.from_user.id}</code>\n</b>"
     caption +=f"<b>☎️Telefon Raqam:{phone_number}\n</b>"
     caption +=f"<b>💸Foydalanuvchining Hozirgi Balansi:{balance}\n</b>"
