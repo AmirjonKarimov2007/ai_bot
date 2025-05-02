@@ -3,7 +3,7 @@ from .models import User,Payment
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'username','univer', 'user_id', 'number', 'balance', 'ref_father','created_date','updated_date','updated_date']
-    list_filter = ['balance', 'ref_father', 'name','user_id','number','is_blocked'] 
+    list_filter = ['balance', 'ref_father', 'name','username','user_id','number','is_blocked'] 
 admin.site.register(User, UserAdmin)
 
 class PaymentAdmin(admin.ModelAdmin):
