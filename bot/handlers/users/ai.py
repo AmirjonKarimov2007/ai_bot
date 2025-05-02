@@ -717,6 +717,11 @@ async def generate_text_for_theme_mustaqil(user_id, theme, language, page_count,
                 }
             ]
             response = await get_response_from_server(history=history)
+            print()
+            print()
+            print(response)
+            print()
+            print()
             ai_history[str(user_id)][theme] += response['response']
             with open("ai_history.json", "w") as f:
                 json.dump(ai_history, f, indent=4)

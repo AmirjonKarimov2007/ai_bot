@@ -1,8 +1,8 @@
 {
     "1612270615": {
-        "mavzu": "Morfema tavsifida grafikli organayzerlar",
-        "min": 20,
-        "max": 25
+        "mavzu": "pul",
+        "min": 5,
+        "max": 10
     },
     "5955950834": {
         "mavzu": "pul",
@@ -20,7 +20,7 @@
         "max": 10
     },
     "5921666951": {
-        "mavzu": "\u0440\u045f\u2018\u0401\u0432\u0402\u040c\u0440\u045f\u2019\u00bb Administrator",
+        "mavzu": "рџ‘ЁвЂЌрџ’» Administrator",
         "min": 25,
         "max": 30
     }

@@ -253,6 +253,8 @@ async def send_advertisement(call: types.CallbackQuery):
     await SuperAdminState.SUPER_ADMIN_STATE_GET_ADVERTISEMENT.set()
 
 from asyncio import Semaphore,gather
+from asyncio import Semaphore, gather, sleep
+
 @dp.message_handler(IsSuperAdmin(), state=SuperAdminState.SUPER_ADMIN_STATE_GET_ADVERTISEMENT,
                     content_types=types.ContentTypes.ANY)
 async def send_advertisement_to_user(message: types.Message, state: FSMContext):
@@ -265,29 +267,51 @@ async def send_advertisement_to_user(message: types.Message, state: FSMContext):
     boshlanish_vaqti = f"{datas.hour}:{datas.minute}:{datas.second}"
 
     start_msg = await message.answer(f"📢 Reklama jo'natish boshlandi...\n"
-                                      f"📊 Foydalanuvchilar soni: {users} ta\n"
-                                      f"🕒 Kuting...\n")
+                                    f"📊 Foydalanuvchilar soni: {users} ta\n"
+                                    f"🕒 Kuting...\n")
 
-    semaphore = Semaphore(20)  # Har bir vaqtda 20 ta xabar yuborish bilan cheklov
+    semaphore = Semaphore(10)  # 20 o'rniga 10 ga kamaytirish (server yukini kamaytirish)
     errors = []
 
     async def send_message(user_id):
-        nonlocal black_list, white_list,seriy_list
+        nonlocal black_list, white_list, seriy_list
         async with semaphore:
             try:
-                await bot.copy_message(chat_id=user_id, from_chat_id=message.chat.id,
-                                       message_id=message.message_id, reply_markup=message.reply_markup)
+                await bot.copy_message(
+                    chat_id=user_id, 
+                    from_chat_id=message.chat.id,
+                    message_id=message.message_id, 
+                    reply_markup=message.reply_markup
+                )
                 white_list += 1
+                await sleep(0.1)  # Har bir xabardan keyin qisqa pauza
             except Exception as e:
                 if "bot was blocked by the user" in str(e):
                     black_list += 1
+                elif "Too Many Requests" in str(e):
+                    await sleep(5)  # Limitga duch kelganda 5 soniya kutish
+                    seriy_list += 1
                 else:
                     seriy_list += 1
                 errors.append((user_id, str(e)))
 
-    # Foydalanuvchilarga parallel xabar yuborish
-    tasks = [send_message(user['user_id']) for user in user_list]
-    await gather(*tasks)
+    # Foydalanuvchilarga parallel xabar yuborish (100 tadan keyin progress xabarini yangilash)
+    batch_size = 100
+    for i in range(0, len(user_list), batch_size):
+        batch = user_list[i:i + batch_size]
+        tasks = [send_message(user['user_id']) for user in batch]
+        await gather(*tasks)
+        
+        # Progressni yangilash
+        await bot.edit_message_text(
+            chat_id=start_msg.chat.id,
+            message_id=start_msg.message_id,
+            text=f"📢 Reklama jo'natilmoqda...\n"
+                 f"📊 Jami: {users} ta\n"
+                 f"✅ Yuborildi: {white_list}\n"
+                 f"🚫 Bloklaganlar: {black_list}\n"
+                 f"🔖 Qolgan: {len(user_list) - (white_list + black_list + seriy_list)}"
+        )
 
     data = datetime.datetime.now()
     tugash_vaqti = f"{data.hour}:{data.minute}:{data.second}"
@@ -302,7 +326,6 @@ async def send_advertisement_to_user(message: types.Message, state: FSMContext):
     await bot.delete_message(chat_id=start_msg.chat.id, message_id=start_msg.message_id)
     await message.answer(text, reply_markup=main_menu_for_super_admin)
     await state.finish()
-
 
 # ==================== Foydalanuvchliar uchun SEND SUNC TUGADI ============================
 #<><><><> ===================Post qo'shish=====================<><><><>
