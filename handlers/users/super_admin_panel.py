@@ -258,7 +258,7 @@ from asyncio import Semaphore, gather, sleep
 @dp.message_handler(IsSuperAdmin(), state=SuperAdminState.SUPER_ADMIN_STATE_GET_ADVERTISEMENT,
                     content_types=types.ContentTypes.ANY)
 async def send_advertisement_to_user(message: types.Message, state: FSMContext):
-    users = await db.stat()
+    users = await db.stat(timeframe='all')
     user_list = await db.select_all_users()
     black_list = 0
     white_list = 0
@@ -295,7 +295,6 @@ async def send_advertisement_to_user(message: types.Message, state: FSMContext):
                     seriy_list += 1
                 errors.append((user_id, str(e)))
 
-    # Foydalanuvchilarga parallel xabar yuborish (100 tadan keyin progress xabarini yangilash)
     batch_size = 100
     for i in range(0, len(user_list), batch_size):
         batch = user_list[i:i + batch_size]
@@ -568,34 +567,6 @@ async def edirt__administator(message: types.Message,state:FSMContext):
 # Start uchun handlerlar
 
 
-@dp.callback_query_handler(IsSuperAdmin(),text='edit_starts')
-async def edirt_starts(call: types.CallbackQuery):
-    await call.answer(cache_time=1)
-    await call.message.edit_text('🌟Stars uchun postni kanalga olib menga linkini yuboring.',reply_markup=back_to_main_menu)
-    await SuperAdminState.SUPER_ADMIN_UPDATE_STARS.set()
-
-@dp.message_handler(IsSuperAdmin(),content_types=types.ContentType.TEXT,state=SuperAdminState.SUPER_ADMIN_UPDATE_STARS)
-async def edirt__starts(message: types.Message,state:FSMContext):
-    url = message.text
-    channel_id, message_id = get_telegram_ids(url)
-    if channel_id and message_id:
-        with open('data.json', 'r') as file:
-            data = json.load(file) 
-        if data['get_stars']['message_id'] and data['get_stars']['from_chat_id']:
-            data['get_stars']['message_id']= message_id
-            data['get_stars']['from_chat_id']= channel_id
-            with open('data.json', 'w') as file:
-                json.dump(data, file, indent=4)
-            await message.answer(text='<b>✅Stars  posti yangilandi!</b>',reply_markup=main_menu_for_super_admin)
-            await state.finish()
-
-        else:
-            await message.answer(text='<b>❌Stars posti yangilanmadi!</b>',reply_markup=main_menu_for_super_admin)
-            await state.finish()
-    else:
-        await message.answer("<b>❌Bot kanalga adminligiga va kanal maxfiy ekanligiga ishonch hosil qiling.</b>",reply_markup=main_menu_for_super_admin)
-        await state.finish()
-
 
 
 
@@ -681,7 +652,7 @@ async def select_service_of_ai(call: types.CallbackQuery):
     services_prices = data['services'][package]
     markup =  InlineKeyboardMarkup(row_width=1)
     for k,v in services_prices.items():
-        markup.add(InlineKeyboardButton(text=f"{k}-{int(k)+5}->{v} so'm",callback_data=f'services_edit:{package}:{k}'))
+        markup.add(InlineKeyboardButton(text=f"{int(k)-5}-{k}->{v} so'm",callback_data=f'services_edit:{package}:{k}'))
     markup.insert(InlineKeyboardButton(text=f"⬅️Orqaga",callback_data=f"edit_services_prices"))
     await call.message.edit_text("Iltimos endi o'zgartimoqchi bo'lgan xizmatingizning tarifnini tanlang!",reply_markup=markup)
 

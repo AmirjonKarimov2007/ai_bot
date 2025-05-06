@@ -15,7 +15,7 @@ import uuid
 
 
 
-CHANNEL = "-1002499899222"
+CHANNEL = "-1002659040969"
 
 @dp.callback_query_handler(IsUser(), text="hisobni_toldirish",state='*')
 async def get_chek_callback(call: types.CallbackQuery):
@@ -186,6 +186,7 @@ import datetime
 
 @dp.callback_query_handler(IsSuperAdmin(),text_contains="checked_payment:",state='*')
 async def tasdiqlangan_tolov(call: types.CallbackQuery):
+    
     data = call.data.rsplit(":")
     user_id = data[1]
     user_price = data[2]
@@ -205,22 +206,25 @@ async def tasdiqlangan_tolov(call: types.CallbackQuery):
             await db.add_payment(name=name,username=username,user_id=int(user_id),file_id=photo,summa=int(user_price),
                                     number=int(number),created_date=datas,updated_date=datas,invoice=invoice)
             await db.update_balance(user_id=int(user_id),sum=int(user_price))
+            await call.answer("✅Foydalanuvchining balansini yangiladingiz?",show_alert=True)
             user = await db.select_user(user_id=int(call.from_user.id))
             balance = user[0]['balance']
             text = f"✅ To'lovingiz qabul qilindi.\n"
             text += f"Balansingiz {user_price}ga to'ldirildi.\n"
             text += f"Balansingiz:{balance}\n"
-            await call.answer("✅Foydalanuvchining balansini yangiladingiz?",show_alert=True)
             await bot.send_photo(chat_id=int(user_id),photo=photo,caption=text)
             await call.message.edit_reply_markup()
-
-        
+            photo_caption = call.message.caption
+            if "📊Status: ✅Taqdiqlangan" not in photo_caption:
+                photo_caption += "\n📊Status: ✅Taqdiqlangan"
+                await call.message.edit_caption(caption=photo_caption)
     except Exception as e:
         await bot.send_message(chat_id=ADMINS[0],text=f"To'lov qisminida xatolik yuz berdi:{e}")
 
 # Cenceled payment handlerlar
 @dp.callback_query_handler(IsSuperAdmin(),text_contains="calceled_payment:",state='*')
 async def atmen_qilingan_tolov(call: types.CallbackQuery):
+    await call.answer(f"✅Invoys Muvaffaqiatli Bekor qilindi qilindi",show_alert=True)
     data = call.data.rsplit(":")
     user_id = data[1]
     user_price = data[2]
@@ -242,9 +246,11 @@ async def atmen_qilingan_tolov(call: types.CallbackQuery):
             text+=f"Siz yuborgan rasmda to'lov ma'lumotlari yo'q\n"
             text+=f"Agar shikoyatingiz bo'lsa admin( @Amirjon_Karimov) bilan bog'laning!\n"
                         
-            await call.answer(f"✅Invoys Bekor qilindi qilindi",show_alert=True)
             await bot.send_photo(chat_id=int(user_id),photo=photo,caption=text)
+            caption = call.message.caption
+            caption +="\n📊Status: ❌Bekor qilingan"
             await call.message.edit_reply_markup()
+            await call.message.edit_caption(caption=caption)
     except Exception as e:
         await bot.send_message(chat_id=ADMINS[0],text=f"To'lov qisminida xatolik yuz berdi:{e}")
 

@@ -100,7 +100,6 @@ async def premiumprices(message: types.Message):
 
 @dp.message_handler(text="Qollanma 📄",state='*')
 async def bot_start_qollanma(message: types.Message):
-    print('salom')
     with open('data.json', 'r') as file:
         data = json.load(file) 
     

@@ -2,7 +2,8 @@
     "1612270615": {
         "mavzu": "pul",
         "min": 5,
-        "max": 10
+        "max": 10,
+        "rejalar": "1. Pulning iqtisodiy roli va uning mamlakat rivojlanishiga ta'siri  \n2. Zamonaviy ijtimoiy tarmoqlarda pul ma'muriyati va moliyaviy ongni oshirish  \n3. Shaxsiy moliya rejalashtirish: budjet tuzish va tejash usullari  "
     },
     "5955950834": {
         "mavzu": "pul",
@@ -18,10 +19,5 @@
         "mavzu": "Xizmat",
         "min": 5,
         "max": 10
-    },
-    "5921666951": {
-        "mavzu": "рџ‘ЁвЂЌрџ’» Administrator",
-        "min": 25,
-        "max": 30
     }
 }

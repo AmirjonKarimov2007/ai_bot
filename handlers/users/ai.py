@@ -24,25 +24,41 @@ uzbekistan_tz = pytz.timezone('Asia/Tashkent')
 from keyboards.inline.boglanish_button import get_premium_keyboard
 
 
-async def text_generator(type,user_id):
+
+async def text_generator(type,user_id,ai=False):
     with open('user_info.json','r',encoding='utf-8') as file:
         data = json.load(file)
-        mavzu = data[str(user_id)]['mavzu']
-        min = data[str(user_id)]['min']
-        max = data[str(user_id)]['max']
-        user = await db.select_user(user_id=int(user_id))
-        name = user[0]['author']
-        univer = user[0]['univer']
-        language = user[0]['language']
-        caption = f"🌟Ajoyib, quyidagi ma'lumotlarni tekshiring\n\n"
-        caption += f"<b>«{type}»</b>\n\n"
-        caption += f"📃Mavzu: <b>{mavzu}</b>\n"
-        caption += f"🏫Institut va kafedra: <b>{univer}</b>\n"
-        caption += f"👤Muallif: <b>{name}</b>\n"
-        caption += f"📰Sahifalar soni: <b>{min}dan – {max}gacha</b>\n"
-        caption += f"👅Tili: <b>{language}</b>\n\n"
 
-    return caption
+    mavzu = data[str(user_id)]['mavzu']
+    min = data[str(user_id)]['min']
+    max = data[str(user_id)]['max']
+    user = await db.select_user(user_id=int(user_id))
+    name = user[0]['author']
+    univer = user[0]['univer']
+    language = user[0]['language']
+    caption = f"🌟Ajoyib, quyidagi ma'lumotlarni tekshiring\n\n"
+    caption += f"<b>«{type}»</b>\n\n"
+    caption += f"📃Mavzu: <b>{mavzu}</b>\n"
+    caption += f"🏫Institut va kafedra: <b>{univer}</b>\n"
+    caption += f"👤Muallif: <b>{name}</b>\n"
+    caption += f"📰Sahifalar soni: <b>{min}dan – {max}gacha</b>\n"
+    caption += f"👅Tili: <b>{language}</b>\n\n"
+    caption += f"Rejalar:👇👇👇\n"
+
+    if ai:
+        themes = await themeCreator(mavzu=mavzu,service=type,language=language)
+        data[str(user_id)]['rejalar'] = themes
+        with open('user_info.json', "w", encoding="utf-8") as file:
+            json.dump(data, file, indent=4, ensure_ascii=False)
+        themes.join('\n')
+        caption+=themes
+    else:
+        themes = data[str(user_id)]['rejalar']
+        themes.join('\n')
+
+        caption+=themes
+    return f"{caption}\n\n"
+
 async def check_info(user_id):
     user = await db.is_user(user_id=int(user_id))
     user_info = user[0]
@@ -117,6 +133,8 @@ async def handle_mustaqil_message(message: types.Message, state: FSMContext):
             caption = await text_generator(
                 type=service,
                 user_id=message.from_user.id,
+                ai=True
+
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
             caption += f"• Biror ma'lumotni o'zgartirish uchun, '✏️O'zgartirish'.\n"
@@ -149,6 +167,7 @@ async def handle_mustaqil_author__message(message: types.Message, state: FSMCont
             caption = await text_generator(
                 type=service,
                 user_id=message.from_user.id,
+
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
             caption += f"• Biror ma'lumotni o'zgartirish uchun, '✏️O'zgartirish'.\n"
@@ -206,14 +225,13 @@ Yangi {service} yaratish uchun quyidagi ✅Foydalanish tugmasini bosing!"""
 
 from keyboards.inline.main_keyboard import editable_keyboards
 @dp.callback_query_handler(IsUser(),text_contains="edit:",state='*')
-async def referal_cancel(call: types.CallbackQuery):
+async def referal_edit(call: types.CallbackQuery):
     data = call.data.rsplit(":")
     service = data[1]
     caption = await text_generator(type=f"{service}",user_id=call.from_user.id)
     caption += "<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
     markup = editable_keyboards(service=service)
     await call.message.edit_text(text=caption,reply_markup=markup)
-
 
 @dp.callback_query_handler(IsUser(),text_contains="back_to_:",state='*')
 async def handle_referal_success_message(call: types.CallbackQuery):
@@ -266,6 +284,7 @@ async def handle_referal_message(message: types.Message, state: FSMContext):
             caption = await text_generator(
                 type=service,
                 user_id=message.from_user.id,
+                ai=True
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
             caption += f"• Biror ma'lumotni o'zgartirish uchun, '✏️O'zgartirish'.\n"
@@ -468,8 +487,26 @@ async def success_handler(call: types.CallbackQuery):
                     await call.answer(cache_time=1)
                     await call.message.answer(text=f"<b>😔Sizda {service} generatsiya qilish uchun yetarlicha mablag' yo'q</b>",reply_markup=get_premium_keyboard)
 
+async def themeCreator(mavzu,service,language,old_theme='None'):
+    theme_data = [
+        {
+            "role": "user",
+            "content": (
+                f"Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
+                f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
+                "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida hech qanday bosh joy tashlama"
+            )
+        }
+    ]
+    response = await get_response_from_server(history=theme_data)
+
+    themes = response.get('response', "") #.split('\n')
+    return themes
+
 
 #  referal uchun mavzu generatsiya qiladi
+# Generatsiya qilgan matni bo'yicha  matn generatsiya qiladi.
+
 async def gg_generate_referat(call: types.CallbackQuery):
     time = datetime.datetime.now(uzbekistan_tz)
     message_text = call.message.text
@@ -479,7 +516,17 @@ async def gg_generate_referat(call: types.CallbackQuery):
     max_pages = page_numbers.group(2).replace('gacha', '')
     topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
     
-
+    themes_section = message_text.split("Rejalar:👇👇👇", 1)[-1].strip()
+    themes_lines = []
+    for line in themes_section.split('\n'):
+        if line.strip().startswith(('1.', '2.', '3.', '4.', '5.')):  # maxsus punktlar uchun
+            themes_lines.append(line.strip())
+    themes = "\n".join(themes_lines)
+    themes = [
+        line.strip()
+        for line in message_text.split("Rejalar:👇👇👇", 1)[-1].strip().split('\n')
+        if re.match(r'^\d+\.', line.strip())
+    ]
     user_id = call.from_user.id
     data = call.data.split(":")
     service = data[1]
@@ -509,23 +556,10 @@ async def gg_generate_referat(call: types.CallbackQuery):
     msg = await call.message.edit_text("⏳")
 
     # Generate themes
-    theme_data = [
-        {
-            "role": "user",
-            "content": (
-                f"Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
-                f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
-                "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida hech qanday bosh joy tashlama"
-            )
-        }
-    ]
-
-    response = await get_response_from_server(history=theme_data)
-    themes = response.get('response', "").split('\n')
-
     tasks = []
 
     for theme in themes:
+        print(theme)
         tasks.append(generate_text_for_theme_referat(user_id, theme, language, page_count, max_pages, ai_history))
 
     await asyncio.gather(*tasks)
@@ -555,9 +589,6 @@ async def gg_generate_referat(call: types.CallbackQuery):
     ai_history[str(user_id)] = {}
     with open("ai_history.json", "w") as f:
         json.dump(ai_history, f, indent=4)
-
-
-# Generatsiya qilgan matni bo'yicha  matn generatsiya qiladi.
 async def generate_text_for_theme_referat(user_id, theme, language, page_count, max_pages, ai_history):
     # Agar theme lug‘atda mavjud bo‘lmasa, uni bo‘sh qiymat bilan boshlash
     if theme not in ai_history[str(user_id)]:
@@ -596,7 +627,6 @@ async def generate_text_for_theme_referat(user_id, theme, language, page_count, 
             with open("ai_history.json", "w") as f:
                 json.dump(ai_history, f, indent=4)
 
-# pastdagilar ham huddi shunaqa prosta mustaqil ish uchun yozilgan.
 async def gg_generate_mustaqil(call: types.CallbackQuery):
     time = datetime.datetime.now(uzbekistan_tz)
     message_text = call.message.text
@@ -605,7 +635,17 @@ async def gg_generate_mustaqil(call: types.CallbackQuery):
     page_numbers = re.search(r'(\d+dan)\s*–\s*(\d+gacha)', page_range_line)
     max_pages = page_numbers.group(2).replace('gacha', '')
     topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
-    
+    themes_section = message_text.split("Rejalar:👇👇👇", 1)[-1].strip()
+    themes_lines = []
+    for line in themes_section.split('\n'):
+        if line.strip().startswith(('1.', '2.', '3.', '4.', '5.')):  # maxsus punktlar uchun
+            themes_lines.append(line.strip())
+    themes = "\n".join(themes_lines)
+    themes = [
+        line.strip()
+        for line in message_text.split("Rejalar:👇👇👇", 1)[-1].strip().split('\n')
+        if re.match(r'^\d+\.', line.strip())
+    ]
 
     user_id = call.from_user.id
     data = call.data.split(":")
@@ -630,30 +670,13 @@ async def gg_generate_mustaqil(call: types.CallbackQuery):
 
     if str(user_id) not in ai_history:
         ai_history[str(user_id)] = {}
-    with open("ai_history.json", "w") as f:
-        json.dump(ai_history, f, indent=4)
+        with open("ai_history.json", "w") as f:
+            json.dump(ai_history, f, indent=4)
 
     msg = await call.message.edit_text("⏳")
-
-    # Generate themes
-    theme_data = [
-        {
-            "role": "user",
-            "content": (
-                f"Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
-                f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
-                "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida hech qanday bosh joy tashlama"
-            )
-        }
-    ]
-
-    theme_response = await get_response_from_server(history=theme_data)
-    themes = theme_response.get('response', "").split('\n')
-
     tasks = []
     for theme in themes:
         tasks.append(generate_text_for_theme_mustaqil(user_id, theme, language, page_count, max_pages, ai_history))
-
     await asyncio.gather(*tasks)
 
     
@@ -667,10 +690,7 @@ async def gg_generate_mustaqil(call: types.CallbackQuery):
         theme_text=ai_history[str(user_id)],
         user_id=str(user_id)
     )
-    ai_history[str(user_id)]={}
-    with open("ai_history.json", "w") as f:
-        json.dump(ai_history, f, indent=4)
-
+   
 
     await bot.send_chat_action(user_id, "upload_document")
     await asyncio.sleep(0.5)
@@ -717,18 +737,14 @@ async def generate_text_for_theme_mustaqil(user_id, theme, language, page_count,
                 }
             ]
             response = await get_response_from_server(history=history)
-            print()
-            print()
-            print(response)
-            print()
-            print()
+            
             ai_history[str(user_id)][theme] += response['response']
             with open("ai_history.json", "w") as f:
                 json.dump(ai_history, f, indent=4)
 
 
 
-# Orqga tugmasi bosilganda ishlaydigan handler
+
 @dp.callback_query_handler(IsUser(), text="back_to_service_menu", state="*")
 async def back_to_main_menu_method(call: types.CallbackQuery,state: FSMContext):
 
@@ -740,7 +756,6 @@ async def back_to_main_menu_method(call: types.CallbackQuery,state: FSMContext):
     await state.finish()
 
 
-# Insho Bayon va qolgan qismlari shu yerda yozilgan bo'ladi
 from keyboards.inline.main_keyboard import success_keyboards_bayon
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Bayon)
 async def handle_bayon_message(message: types.Message, state: FSMContext):
@@ -866,11 +881,7 @@ async def handle_tabrik_message(message: types.Message, state: FSMContext):
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:52:error:{e}")
 
 
-
-# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
-# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
-# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
-# AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
+ 
 # AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
 # AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari AI handlerlari 
 
@@ -924,7 +935,6 @@ async def gg_generate_bayon(call: types.CallbackQuery):
     await asyncio.sleep(0.5)
 
     time = datetime.datetime.now(uzbekistan_tz)
-
 async def generate_text_for_theme_bayon(user_id, theme, language, page_count, max_pages):
     if page_count[str(max_pages)] == 0:
         history = [
