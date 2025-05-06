@@ -105,6 +105,7 @@ async def select_service(call: types.CallbackQuery):
 
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Mustaqil)
 async def handle_mustaqil_message(message: types.Message, state: FSMContext):
+    timeicon = await message.answer("⏳")
     service = "MUSTAQIL ISH"
     markup = success_keyboards(service)
     mavzu = message.text
@@ -139,6 +140,7 @@ async def handle_mustaqil_message(message: types.Message, state: FSMContext):
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
             caption += f"• Biror ma'lumotni o'zgartirish uchun, '✏️O'zgartirish'.\n"
             caption += f"• Bekor qilish uchun, '🚫Rad qilish'."
+            await timeicon.delete()
             await message.answer(text=caption,reply_markup=markup)
             await state.finish()
         else:
@@ -256,6 +258,8 @@ async def handle_referal_success_message(call: types.CallbackQuery):
 # Referat mavzusini olamiz
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Referat)
 async def handle_referal_message(message: types.Message, state: FSMContext):
+    timeicon = await message.answer("⏳")
+
     service = "REFERAT"
     markup = success_keyboards(service)
     mavzu = message.text
@@ -289,6 +293,8 @@ async def handle_referal_message(message: types.Message, state: FSMContext):
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
             caption += f"• Biror ma'lumotni o'zgartirish uchun, '✏️O'zgartirish'.\n"
             caption += f"• Bekor qilish uchun, '🚫Rad qilish'."
+
+            await timeicon.delete()
             await message.answer(text=caption,reply_markup=markup)
             await state.finish()
         else:
@@ -354,9 +360,6 @@ async def handle_referal_author_NAME_message(message: types.Message, state: FSMC
     except Exception as e:
         await state.finish()
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
-
-
-# Referat qismi....
 
 @dp.callback_query_handler(IsUser(),text_contains="cancel:")
 async def referal_cancel(call: types.CallbackQuery):
