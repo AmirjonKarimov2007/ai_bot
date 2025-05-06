@@ -33,13 +33,12 @@ async def edit_theme(message: types.Message,state:FSMContext):
             user_info = json.load(file)
     else:
         user_info = {}
-
     user_info[user_id]['mavzu'] = mavzu
 
     with open('user_info.json', "w", encoding="utf-8") as file:
             json.dump(user_info, file, indent=4, ensure_ascii=False)
         
-    caption = await text_generator(type=f"{service}",user_id=message.from_user.id)
+    caption = await text_generator(type=f"{service}",user_id=message.from_user.id,ai=True)
     caption += "<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
     markup = editable_keyboards(service=service)
     
@@ -111,7 +110,7 @@ async def edit_author_name(message: types.Message,state:FSMContext):
     markup = success_keyboards(service)
     try:
         await db.update_user_author(author=author,user_id=int(message.from_user.id))
-        caption = await text_generator(type=f"{service}",user_id=message.from_user.id)
+        caption = await text_generator(type=f"{service}",user_id=message.from_user.id,ai=True)
         caption += "<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
         markup = editable_keyboards(service=service)
         
@@ -119,7 +118,7 @@ async def edit_author_name(message: types.Message,state:FSMContext):
         await state.finish()
 
     except Exception as e:
-        caption = await text_generator(type=f"{service}",user_id=message.from_user.id)
+        caption = await text_generator(type=f"{service}",user_id=message.from_user.id,ai=True)
         caption += "<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
         markup = editable_keyboards(service=service)
         

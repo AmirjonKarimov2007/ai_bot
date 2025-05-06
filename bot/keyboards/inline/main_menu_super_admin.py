@@ -37,7 +37,6 @@ def edit_services_prices():
     services_prices = data['services']
     
     for k, v in services_prices.items():
-        print(k)
         services.insert(
             InlineKeyboardButton(
                 text=f"{k.replace('_', ' ')}", 

@@ -7,6 +7,6 @@ class UserAdmin(admin.ModelAdmin):
 admin.site.register(User, UserAdmin)
 
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'user_id', 'number', 'balance', 'summa','updated_date','updated_date']
-    list_filter = ['id', 'username', 'user_id', 'number', 'balance', 'summa','updated_date','updated_date']
+    list_display = ['id', 'name','username', 'user_id', 'number', 'balance', 'summa','updated_date','updated_date']
+    list_filter = ['id', 'name','username', 'user_id', 'number', 'balance', 'summa','updated_date','updated_date']
 admin.site.register(Payment, PaymentAdmin)
