@@ -57,9 +57,6 @@ async def change_theme(call: types.CallbackQuery,state:FSMContext):
     await call.message.edit_text(f"Institut va kafedrangizni to'liq kiriting\n\n📋Namuna: <b>FARG‘ONA DAVLAT UNIVERSITETI IQTISODIYOT KAFEDRASI</b>",reply_markup=markup)
     await state.update_data({"service":service})
     await SERVICE_EDIT.Referat_UNIVER.set()
-    
-
-
 @dp.message_handler(IsUser(),content_types=types.ContentType.TEXT,state=SERVICE_EDIT.Referat_UNIVER)
 async def edit_theme(message: types.Message,state:FSMContext):
     univer = message.text
@@ -85,10 +82,8 @@ async def edit_theme(message: types.Message,state:FSMContext):
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:137:error:{e}")
         await state.finish()
 
+
 # Muallifni edit qilish uchun handlerlar shu yerga yozilgan
-
-
-
 @dp.callback_query_handler(IsUser(),text_contains="change_author:",state='*')
 async def change_theme(call: types.CallbackQuery,state:FSMContext):
     data = call.data.rsplit(":")
@@ -98,9 +93,6 @@ async def change_theme(call: types.CallbackQuery,state:FSMContext):
     await call.message.edit_text(f"Muallif ism-familiyasi, guruhi va hokazolarni to'liq kiriting.📋Namuna: <b>Isroilov Ismoiljon Muhiddin o'g'li, 4-kurs, 21.36-guruh</b>",reply_markup=markup)
     await state.update_data({"service":service})
     await SERVICE_EDIT.Referat_AUTHOR_NAME.set()
-    
-
-
 @dp.message_handler(IsUser(),content_types=types.ContentType.TEXT,state=SERVICE_EDIT.Referat_AUTHOR_NAME)
 async def edit_author_name(message: types.Message,state:FSMContext):
     author = message.text
@@ -125,10 +117,6 @@ async def edit_author_name(message: types.Message,state:FSMContext):
         await message.answer(text=caption,reply_markup=markup)
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:137:error:{e}")
         await state.finish()
-
-
-
-
 # BU yerda language uchun handler yozilgan
 
 @dp.callback_query_handler(IsUser(),text_contains="change_language:",state='*')
@@ -145,9 +133,6 @@ async def change_theme(call: types.CallbackQuery,state:FSMContext):
         markup.insert(InlineKeyboardButton(text=f"{language}", callback_data=f"edit_language:{language[2::]}:{service}"))
     markup.add(InlineKeyboardButton(text="⬅️ Orqaga", callback_data=f"edit:{service}"))
     await call.message.edit_text(f"🇺🇿 Tilni tanlang",reply_markup=markup)
-    
-
-
 @dp.callback_query_handler(IsUser(),text_contains="edit_language",state='*')
 async def edit_language(call: types.CallbackQuery):
     data = call.data.rsplit(":")
@@ -171,7 +156,83 @@ async def edit_language(call: types.CallbackQuery):
         await call.message.edit_text(text=caption,reply_markup=markup)
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:137:error:{e}")
 
+#----------------------------------------------Rejalarni tahrir qilish uchun handlarlar----------------------------------------------
+#----------------------------------------------Rejalarni tahrir qilish uchun handlarlar----------------------------------------------
+# Referat_PLAN
+import re
+from keyboards.inline.main_keyboard import plans_keyboard
 
+@dp.callback_query_handler(IsUser(),text_contains="change_plan:",state='*')
+async def change_service_plans(call: types.CallbackQuery,state:FSMContext):
+    try:
+        await call.answer(cache_time=1)
+        message_text = call.message.text
+        themes_section = message_text.split("Rejalar:👇👇👇", 1)[-1].strip()
+        themes_lines = []
+        for line in themes_section.split('\n'):
+            if line.strip().startswith(('1.', '2.', '3.', '4.', '5.')):  
+                themes_lines.append(line.strip())
+        themes = "\n".join(themes_lines)
+        
+        data = call.data.rsplit(":")
+        service = data[1]
+
+        topic_line = next((line for line in message_text.split('\n') if line.startswith("📃Mavzu:")), "")
+        topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
+
+        markup = plans_keyboard(service)
+
+        caption = f"<b>Rejalarni qay shaklda yangilamoqchisiz?</b>\n\n"
+        caption += f"<b>Mavzu: {topic}</b>\n\n"
+        caption += f"<b>🪐REJALAR</b>\n"
+        caption += f"<b>{themes}</b>\n\n"
+        caption += f"<b>ℹ️Malumot!</b>\n"
+        caption +=f"<b>♻️ Auto Yangilash:</b> <i>Bu bo'limda <b>{service}</b> uchun rejalarni sun'iy intelekt orqali auto generatsiya qilsangiz bo'ladi.</i>\n\n"
+        caption +=f"<b>✍️ Qo'lda Yangilash:</b> <i>Bu bo'limda esa <b>{service}</b> uchun rejalarni qo'lda o'zingizgiz tayyorlagan rejalar bo'yicha yangilash imkoniyatiga ega bo'lasiz.</i>"
+        await call.message.edit_text(caption,reply_markup=markup)
+    except Exception as e:
+        await bot.send_message(chat_id=ADMINS[0],text=f"Xatolik yuz berdi 190-line:-> {e}")
+
+from .ai import themeCreator
+@dp.callback_query_handler(IsUser(),text_contains="change_plan_auto:",state='*')
+async def autogenerateplan(call: types.CallbackQuery):
+    try:
+        time = await call.message.edit_text('⏳')
+        data = call.data.rsplit(":")
+        service = data[1]
+        message_text = call.message.text
+        topic_line = next((line for line in message_text.split('\n') if line.startswith("Mavzu:")), "")
+        topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
+
+        patterns = re.findall(r"\d+\.\s+.*", message_text)
+        reja_matni = "".join([plan + "\n" for plan in patterns])
+        with open('user_info.json','r',encoding='utf-8') as file:
+            data_json = json.load(file)
+
+        themes = await themeCreator(mavzu=topic,service="MUSTAQIL ISH",language='uz',old_theme=reja_matni)
+        caption = f"<b>Rejalarni qay shaklda yangilamoqchisiz?</b>\n\n"
+        caption += f"<b>Mavzu: {topic}</b>\n\n"
+        caption += f"<b>🪐REJALAR</b>\n"
+        caption += f"<b>{themes}</b>\n\n"
+        caption += f"<b>ℹ️Malumot!</b>\n"
+        caption +=f"<b>♻️ Auto Yangilash:</b> <i>Bu bo'limda <b>{service}</b> uchun rejalarni sun'iy intelekt orqali auto generatsiya qilsangiz bo'ladi.</i>\n\n"
+        caption +=f"<b>✍️ Qo'lda Yangilash:</b> <i>Bu bo'limda esa <b>{service}</b> uchun rejalarni qo'lda o'zingizgiz tayyorlagan rejalar bo'yicha yangilash imkoniyatiga ega bo'lasiz.</i>\n\n"
+        caption +=f"<b>Tayyor bo'lganan keyin '⬅️Orqaga tugmasini' bosing.</b>"
+        
+        markup = plans_keyboard(service)
+        await call.message.edit_text(text=caption,reply_markup=markup)
+        data_json[str(call.from_user.id)]['rejalar'] = themes
+        with open('user_info.json', "w", encoding="utf-8") as file:
+            json.dump(data_json, file, indent=4, ensure_ascii=False)
+
+    except Exception as e:
+        print(e)
+
+
+
+
+#///////---------------------------------------Rejalarni tahrir qilish uchun handlarlar----------------------------------------------
+#///////---------------------------------------Rejalarni tahrir qilish uchun handlarlar----------------------------------------------
 
 @dp.callback_query_handler(IsUser(),text_contains="add_page:",state='*')
 async def add_page(call: types.CallbackQuery):

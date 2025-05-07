@@ -24,6 +24,7 @@ class SERVICE_EDIT(StatesGroup):
     Referat_UNIVER = State()
     Referat_AUTHOR_NAME = State()
     Referat_LANGUAGE = State()
+    Referat_PLAN = State()
     Referat_NUMBER_OF_PAGE = State()
 
 
