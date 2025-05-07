@@ -410,6 +410,9 @@ async def handle_referal_success_message(call: types.CallbackQuery):
 
 @dp.callback_query_handler(IsUser(), text_contains="success:", state="*")
 async def success_handler(call: types.CallbackQuery):
+    
+
+
     data = call.data.rsplit(":")
     service = data[1]
     user = await db.select_user(user_id = int(call.from_user.id))
@@ -497,6 +500,9 @@ async def themeCreator(mavzu,service,language,old_theme='None'):
             "content": (
                 f"Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
                 f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
+                f"Uni faqat sarlavha shaklida va to‘liq iboralarda yoz. "
+                f"1.,2.,3. ko'rinishida yoz "
+
                 "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida hech qanday bosh joy tashlama"
             )
         }
@@ -514,10 +520,10 @@ async def gg_generate_referat(call: types.CallbackQuery):
     time = datetime.datetime.now(uzbekistan_tz)
     message_text = call.message.text
     topic_line = next((line for line in message_text.split('\n') if line.startswith("📃Mavzu:")), "")
+    topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
     page_range_line = next((line for line in message_text.split('\n') if line.startswith("📰Sahifalar soni:")), "")
     page_numbers = re.search(r'(\d+dan)\s*–\s*(\d+gacha)', page_range_line)
     max_pages = page_numbers.group(2).replace('gacha', '')
-    topic = topic_line.split(":", 1)[-1].strip() if topic_line else "Unknown"
     
     themes_section = message_text.split("Rejalar:👇👇👇", 1)[-1].strip()
     themes_lines = []
@@ -562,7 +568,6 @@ async def gg_generate_referat(call: types.CallbackQuery):
     tasks = []
 
     for theme in themes:
-        print(theme)
         tasks.append(generate_text_for_theme_referat(user_id, theme, language, page_count, max_pages, ai_history))
 
     await asyncio.gather(*tasks)
