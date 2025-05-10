@@ -23,6 +23,8 @@ async def change_theme(call: types.CallbackQuery,state: FSMContext):
 
 @dp.message_handler(IsUser(),content_types=types.ContentType.TEXT,state=SERVICE_EDIT.Referat_THEME)
 async def edit_theme(message: types.Message,state:FSMContext):
+    time = await message.answer("⏳")
+
     mavzu = message.text
     user_id = str(message.from_user.id)  
     data = await state.get_data()
@@ -41,7 +43,7 @@ async def edit_theme(message: types.Message,state:FSMContext):
     caption = await text_generator(type=f"{service}",user_id=message.from_user.id,ai=True)
     caption += "<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
     markup = editable_keyboards(service=service)
-    
+    await time.delete()
     await message.answer(text=caption,reply_markup=markup)
     await state.finish()
 
@@ -135,6 +137,7 @@ async def change_theme(call: types.CallbackQuery,state:FSMContext):
     await call.message.edit_text(f"🇺🇿 Tilni tanlang",reply_markup=markup)
 @dp.callback_query_handler(IsUser(),text_contains="edit_language",state='*')
 async def edit_language(call: types.CallbackQuery):
+    await call.message.edit_text("⏳")
     data = call.data.rsplit(":")
 
     language = data[1]
@@ -142,7 +145,7 @@ async def edit_language(call: types.CallbackQuery):
     markup = success_keyboards(service)
     try:
         await db.update_user_language(language=language,user_id=int(call.from_user.id))
-        caption = await text_generator(type=f"{service}",user_id=call.from_user.id)
+        caption = await text_generator(type=f"{service}",user_id=call.from_user.id,ai=True)
         caption += "<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
         markup = editable_keyboards(service=service)
         
@@ -150,7 +153,7 @@ async def edit_language(call: types.CallbackQuery):
 
     except Exception as e:
         caption = await text_generator(type=f"{service}",user_id=call.from_user.id)
-        caption += "<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
+        caption += "<b>Nimani o'zgartirmoqchisiz❓ Iltmos Quyidagilardan birini tanlang👇</b>"
         markup = editable_keyboards(service=service)
         
         await call.message.edit_text(text=caption,reply_markup=markup)
