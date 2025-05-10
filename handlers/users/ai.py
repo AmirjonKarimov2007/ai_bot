@@ -410,8 +410,6 @@ async def handle_referal_success_message(call: types.CallbackQuery):
 
 @dp.callback_query_handler(IsUser(), text_contains="success:", state="*")
 async def success_handler(call: types.CallbackQuery):
-    
-
 
     data = call.data.rsplit(":")
     service = data[1]
