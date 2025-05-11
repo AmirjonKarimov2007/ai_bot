@@ -736,7 +736,19 @@ async def private_promocode(call: types.CallbackQuery):
     except:
         await call.message.answer('Botda xatolik yuz berdi.Boshqatdan urinib koring')
 from main import generate_unique_promo_code
+from datetime import datetime, timedelta
+async def check_date(input_date: str) -> bool:
+    # Kiritilgan sanani datetime formatiga o'zgartirish
+    try:
+        date_to_check = datetime.strptime(input_date, "%Y-%m-%d")
+    except ValueError:
+        return False
+    today = datetime.today()
 
+    if date_to_check >= today:
+        return True
+    else:
+        return False
 @dp.message_handler(IsSuperAdmin(), content_types=types.ContentType.TEXT, state=SuperAdminState.CREATE_PRIVATE_PROMOCODE)
 async def generate_promo_code_for_private(message: types.Message, state: FSMContext):
     data = message.text.rsplit(",")
@@ -748,9 +760,13 @@ async def generate_promo_code_for_private(message: types.Message, state: FSMCont
 
     person_count = data[0].strip()
     promo_price = data[1].strip()
-    
+    end_day_count = data[2].strip()
+    today = datetime.today()
+
+    end_date = today + timedelta(days=int(end_day_count))
+    end_date = end_date.strftime("%Y-%m-%d")
     # Kiritilgan qiymatlarni tekshirish
-    if not person_count.isdigit() or not promo_price.isdigit() or int(person_count) <= 0 or int(promo_price) <= 0:
+    if not person_count.isdigit() or not end_day_count.isdigit() or not promo_price.isdigit() or int(person_count) <= 0 or int(promo_price) <= 0:
         await message.answer("Iltimos, musbat sonlarni kiriting: <Odamlar soni>, <PromoCode Narxi>")
         return
 
@@ -767,6 +783,7 @@ async def generate_promo_code_for_private(message: types.Message, state: FSMCont
     promo_data['promo_codes'][promo_code] = {
         "count": int(person_count),
         "price": int(promo_price),
+        "finish": end_date,
         "users": [],
         "status": "private"
     }

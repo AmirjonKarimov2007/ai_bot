@@ -30,7 +30,37 @@ class User(models.Model):
     def __str__(self):
         return self.name
 
+class Promocode(models.Model):
+    code = models.CharField(max_length=100, unique=True)
+    price = models.BigIntegerField(verbose_name='Promocode Price', null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    used_count = models.PositiveIntegerField(default=0)
 
+    def __str__(self) -> str:
+        return str(self.code)
+
+    def is_valid(self):
+        now = timezone.now()
+        return self.is_active and self.start_date <= now <= self.end_date
+
+
+class PromocodeUsage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # User modeliga bog'lash
+    promocode = models.ForeignKey(Promocode, on_delete=models.CASCADE, related_name="usage")
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('promocode', 'user')  # Bir foydalanuvchi faqat bitta promo-kodni bir marta ishlatishi kerak
+
+    def __str__(self) -> str:
+        return f"User {self.user.username} used {self.promocode.code}"
+    
+
+
+
+    
 class Payment(models.Model):
     name = models.CharField(verbose_name='Fullname', max_length=100)
     username = models.CharField(verbose_name='Username', max_length=200, null=True,blank=True)
@@ -44,4 +74,6 @@ class Payment(models.Model):
     updated_date = models.DateTimeField(auto_now=True,verbose_name="O'zgartirilgan sana")
     def __str__(self) -> str:
         return str(self.username)
+    
+
 
