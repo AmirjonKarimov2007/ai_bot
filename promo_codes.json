@@ -1,11 +1,9 @@
 {
     "promo_codes": {
-        "E1B9A261": {
+        "A5749409": {
             "count": 1,
-            "price": 1,
-            "users": [
-                1612270615
-            ],
+            "price": 200,
+            "users": [],
             "status": "private"
         }
     }
