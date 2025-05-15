@@ -30,7 +30,8 @@ MANUAL = "<b>❓Botda qanday qilib pul ishlayman?</b>\n" \
          "— Siz chaqirgan do'stingiz bizning homiylar kanaliga a'zo bo'lganidan so'ng sizning referalingiz hisoblanadi va sizning balansingizga pul tushadi!\n\n" \
          "<i>✅ To'lovlar soni cheklanmagan, xohlaganingizcha shartlar bajaring va pul ishlang!</i>"
 
-TARIX = "<b>Botimiz haqiqatdan ham to'lab beradi. ✅</b>\n\n<i>Quyidagi kanal orqali to'lovlar tarixini kuzatib borishingiz mumkin👇</i>\nhttps://t.me/+Q6TsT4YXvXplZDUy"
+
+
 @dp.message_handler(IsUser(),text="💳 Mening Hisobim",state='*')
 async def bot_start(message: types.Message):
     user_id = message.from_user.id
@@ -110,10 +111,8 @@ async def bot_start_qollanma(message: types.Message):
             await bot.copy_message(chat_id=message.from_user.id,from_chat_id=chat_id,message_id=message_id)
         except Exception as e:
             print(e)
-        
-@dp.message_handler(IsUser(),text="To'lovlar tarixi 🧾",state='*')
-async def bot_start(message: types.Message):
-    await message.reply(text=TARIX, disable_web_page_preview=True)
+
+
 import json
 
 @dp.message_handler(IsUser(),text="👨‍💻 Administrator",state='*')
@@ -143,7 +142,16 @@ from aiogram.dispatcher import FSMContext
 # PROMOCode PROMOCODE PROMOCODE PROMOCODE PROMOCODE PROMOCODE
 from aiogram.types import *
 import asyncio
+from utils.promocode_api import promocode_service
+
 async def check_promocode(promocode,user_id):
+    promoCodes = promocode_service.get_all_promcodes()
+    promocode_id = None
+    for promo in promoCodes:
+        if promo['code']==promocode:
+            promocode_id = promo['id']
+    print(promocode_id)
+
     
     with open('promo_codes.json', 'r') as file:
         data = json.load(file)
@@ -171,6 +179,7 @@ async def get_promocode(message: types.Message):
 
 @dp.message_handler(IsUser(),content_types=types.ContentType.TEXT,state=SuperAdminState.GET_PROMOCODE)
 async def promocode(message: types.Message,state: FSMContext):
+    
     promocode = message.text
     status = await check_promocode(promocode=promocode,user_id=message.from_user.id)
     if status==True:

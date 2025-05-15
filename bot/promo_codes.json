@@ -1,10 +1,14 @@
 {
     "promo_codes": {
-        "A5749409": {
+        "30667A12": {
             "count": 1,
-            "price": 200,
-            "users": [],
-            "status": "private"
+            "price": 1000,
+            "users": [
+                6316528199
+            ],
+            "status": "public",
+            "message_id": 650,
+            "channel": "@Amirjon_Karimov_Blog"
         }
     }
 }

@@ -723,22 +723,24 @@ async def create_new_promocode(call: types.CallbackQuery):
     except Exception as e:
         await call.message.answer(f"Botda xatolik yuz berdi:{e},superadmin.py line 785")
 
-
+from data.config import ADMINS
 @dp.callback_query_handler(IsSuperAdmin(),text='create_private_promocode',state='*')
 async def private_promocode(call: types.CallbackQuery):
     await call.answer(cache_time=1)
     try:
-        text = "<b>Yaxshi Maxfiy promo necha kishilik bo'lishi va nech puldan bo'lishini yuboring.</b>"
+        text = "<b>Yaxshi Maxfiy promo necha kishilik bo'lishi va nech puldan bo'lishini yuboring.`Odamlar Soni`,`PromoCode Qiymati`,`Necha Kun Amal qilishi`\nMisol uchun: 1,1000,5</b>"
         markup = InlineKeyboardMarkup(row_width=1)
         markup.insert(InlineKeyboardButton(text="⬅️Orqaga",callback_data="create_new_promo_code"))
         await call.message.edit_text(text=text,reply_markup=markup)
         await SuperAdminState.CREATE_PRIVATE_PROMOCODE.set()
-    except:
+    except Exception as e:
+        await bot.send_message(chat_id=ADMINS[0],text=e)
         await call.message.answer('Botda xatolik yuz berdi.Boshqatdan urinib koring')
+
+
 from main import generate_unique_promo_code
 from datetime import datetime, timedelta
 async def check_date(input_date: str) -> bool:
-    # Kiritilgan sanani datetime formatiga o'zgartirish
     try:
         date_to_check = datetime.strptime(input_date, "%Y-%m-%d")
     except ValueError:
@@ -749,12 +751,18 @@ async def check_date(input_date: str) -> bool:
         return True
     else:
         return False
+    
+
+    
+from utils.promocode_api import promocode_service
+from datetime import datetime
+
 @dp.message_handler(IsSuperAdmin(), content_types=types.ContentType.TEXT, state=SuperAdminState.CREATE_PRIVATE_PROMOCODE)
 async def generate_promo_code_for_private(message: types.Message, state: FSMContext):
     data = message.text.rsplit(",")
     
     # Ma'lumotlar sonini tekshirish
-    if len(data) < 2:
+    if len(data) < 3:
         await message.answer("Iltimos, to'g'ri formatda kiriting: Odamlar soni, PromoCode Narxi")
         return
 
@@ -764,7 +772,6 @@ async def generate_promo_code_for_private(message: types.Message, state: FSMCont
     today = datetime.today()
 
     end_date = today + timedelta(days=int(end_day_count))
-    end_date = end_date.strftime("%Y-%m-%d")
     # Kiritilgan qiymatlarni tekshirish
     if not person_count.isdigit() or not end_day_count.isdigit() or not promo_price.isdigit() or int(person_count) <= 0 or int(promo_price) <= 0:
         await message.answer("Iltimos, musbat sonlarni kiriting: <Odamlar soni>, <PromoCode Narxi>")
@@ -779,6 +786,7 @@ async def generate_promo_code_for_private(message: types.Message, state: FSMCont
     except (FileNotFoundError, json.JSONDecodeError):
         promo_data = {'promo_codes': {}}
     promo_data = {'promo_codes': {}}
+    timeNow = datetime.now()
     # Yangi promo-kodni qo'shish
     promo_data['promo_codes'][promo_code] = {
         "count": int(person_count),
@@ -788,9 +796,10 @@ async def generate_promo_code_for_private(message: types.Message, state: FSMCont
         "status": "private"
     }
 
+    promocode_service.create_promocode(code=promo_code,start_date=timeNow,end_date=end_date,used_count=int(person_count),price=int(promo_price))
     # Faylga yozish
-    with open('promo_codes.json', 'w') as file:
-        json.dump(promo_data, file, indent=4)
+    # with open('promo_codes.json', 'w') as file:
+    #     json.dump(promo_data, file, indent=4)
 
     await message.answer(f"Maxfiy PromoCodingiz Muvaffaqiyatli yaratildi: <code>{promo_code}</code>")
     await state.finish()
