@@ -4,11 +4,13 @@ class PromocodeService:
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def create_promocode(self, code, price, start_date, end_date, used_count=0, is_active=True):
+    def create_promocode(self, code, price, start_date, end_date, used_count=0, is_active=True,status='private'):
         url = f'{self.base_url}/api/promocodes/'
         data = {
             'code': code,
             'price': price,
+            'status': status,
+
             'start_date': start_date,
             'end_date': end_date,
             'used_count': used_count,
@@ -17,22 +19,25 @@ class PromocodeService:
         response = requests.post(url, data=data)
 
         if response.status_code == 201:
-            return response.json()  # Return the created promocode data
+            return response.json()  
         else:
-            return None
+            return False
     def get_promocode(self, promocode_id):
         url = f'{self.base_url}/api/promocodes/{promocode_id}/'
         response = requests.get(url)
 
         if response.status_code == 200:
-            print('Promocode details:', response.json())
+             return response.json()
         else:
-            print('Failed to fetch promocode:', response.status_code, response.text)
-    def update_promocode(self, promocode_id, code, price, start_date, end_date, used_count=0, is_active=True):
+           return  response.text
+
+
+    def update_promocode(self, promocode_id, code, price, start_date, end_date,message_id, used_count=0, is_active=True):
         url = f'{self.base_url}/api/promocodes/{promocode_id}/'
         data = {
             'code': code,
             'price': price,
+            'message_id': message_id,
             'start_date': start_date,
             'end_date': end_date,
             'used_count': used_count,
@@ -41,7 +46,7 @@ class PromocodeService:
         response = requests.put(url, data=data)
 
         if response.status_code == 200:
-            print('Promocode updated successfully:', response.json())
+           return response.json()
         else:
             print('Failed to update promocode:', response.status_code, response.text)
     def delete_promocode(self, promocode_id):
@@ -67,14 +72,15 @@ class PromocodeService:
         url = f'{self.base_url}/api/promocode-usage/'
         data = {
             'user': user_id,
-            'promocode': promocode_id
+            'promocode': promocode_id,
         }
         response = requests.post(url, data=data)
-
         if response.status_code == 201:
-            print('Promocode usage created successfully:', response.json())
+
+            return  response.json()
         else:
-            print('Failed to create promocode usage:', response.status_code, response.text)
+            return response.text
+        
     def get_promocode_usage(self, promocode_usage_id):
         url = f'{self.base_url}/api/promocode-usage/{promocode_usage_id}/'
         response = requests.get(url)
@@ -83,27 +89,40 @@ class PromocodeService:
             print('Promocode usage details:', response.json())
         else:
             print('Failed to fetch promocode usage:', response.status_code, response.text)
-    def is_promocode_activated_by_user(self, user_id, promocode_id):
+    
+    def is_user_activate_promocode(self, promocode_id,user_id):
+        url = f'{self.base_url}/api/promocode-usage/'
+        response = requests.get(url)
 
-            url = f'{self.base_url}/api/promocode-usage/'
-            params = {
-                'user': user_id,
-                'promocode': promocode_id
+        if response.status_code == 200:
+            promocode_usages = response.json()
+
+            filtered_users = {
+                usage['user']
+                for usage in promocode_usages
+                if usage['promocode'] == promocode_id
             }
-            response = requests.get(url, params=params)
-
-            if response.status_code == 200:
-                promocode_usage = response.json()
-                # Agar response bo'yicha usage mavjud bo'lsa, faollashtirilgan deb hisoblash mumkin
-                if promocode_usage:
-                    print(f'Foydalanuvchi {user_id} promocode {promocode_id} ni aktiv qilgan.')
-                    return True
-                else:
-                    print(f'Foydalanuvchi {user_id} promocode {promocode_id} ni aktiv qilmagan.')
-                    return False
+            if user_id not in list(filtered_users):
+                return True,list(filtered_users)
             else:
-                print('Failed to fetch promocode usage:', response.status_code, response.text)
                 return False
+        else:
+            return False
+    def get_promocode_activated_users(self, promocode_id):
+        url = f'{self.base_url}/api/promocode-usage/'
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            promocode_usages = response.json()
+
+            filtered_users = {
+                usage['user']
+                for usage in promocode_usages
+                if usage['promocode'] == promocode_id
+            }
+            return list(filtered_users)
+        else:
+            return False
     def get_all_promcodes(self):
         url = f'{self.base_url}/api/promocodes/'
         response = requests.get(url)

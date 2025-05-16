@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters import BoundFilter
 from data.config import ADMINS
 from loader import db
 
-#Dasturchi @Mrgayratov kanla @Kingsofpy
+
 class IsSuperAdmin(BoundFilter):
     async def check(self, message: types.Message):
         user_id = message.from_user.id
@@ -13,7 +13,7 @@ class IsSuperAdmin(BoundFilter):
             return True
         else:
             return False
-#Dasturchi @Mrgayratov kanla @Kingsofpy
+
 class IsAdmin(BoundFilter):
     async def check(self, message: types.Message):
         user_id = int(message.from_user.id)  # Convert user ID to integer
@@ -23,4 +23,3 @@ class IsAdmin(BoundFilter):
         else:
             return False
 
-#Dasturchi @Mrgayratov kanla @Kingsofpy

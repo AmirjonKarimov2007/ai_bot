@@ -5,7 +5,7 @@ import datetime
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-#Dasturchi @Mrgayratov kanla @Kingsofpy
+
 from filters import IsSuperAdmin
 from keyboards.inline.main_menu_super_admin import main_menu_for_super_admin, back_to_main_menu
 from loader import dp, db, bot
@@ -28,7 +28,7 @@ async def add_admin_method(message: types.Message, state: FSMContext):
     await message.answer("👨🏻‍💻 Yangi admin ismini yuborin",
                                  reply_markup=back_to_main_menu)
     await SuperAdminState.SUPER_ADMIN_ADD_FULLNAME.set()
-#Dasturchi @Mrgayratov kanla @Kingsofpy
+
 
 @dp.message_handler(IsSuperAdmin(), state=SuperAdminState.SUPER_ADMIN_ADD_FULLNAME)
 async def add_admin_method(message: types.Message,state: FSMContext):
@@ -37,7 +37,7 @@ async def add_admin_method(message: types.Message,state: FSMContext):
         full_name = message.text
         await state.update_data({"full_name": full_name})
         malumot = await state.get_data()
-        # Dasturchi @Mrgayratov kanla @Kingsofpy
+        # Dasturchi @Amirjon Karimov kanla @Amirjon_Karimov_Blog
         adminid = malumot.get("admin_id")
         full_name = malumot.get("full_name")
         try:
@@ -63,12 +63,12 @@ async def show_admins(call: types.CallbackQuery):
     buttons = InlineKeyboardMarkup(row_width=1)
     for admin in admins:
         buttons.insert(InlineKeyboardButton(text=f"{admin[2]}", callback_data=f"admin:{admin[1]}"))
-    # Dasturchi @Mrgayratov kanla @Kingsofpy
+    # Dasturchi @Amirjon Karimov kanla @Amirjon_Karimov_Blog
     buttons.add(InlineKeyboardButton(text="➕ Admin qo'shish", callback_data="add_admin"))
     buttons.insert(InlineKeyboardButton(text="⬅️ Orqaga", callback_data="back_to_main_menu"))
     await call.message.edit_text(text="👤 Adminlar", reply_markup=buttons)
     
-#Dasturchi @Mrgayratov kanla @Kingsofpy
+
 @dp.callback_query_handler(IsSuperAdmin(), text_contains="admin:", state="*")
 async def del_admin_method(call: types.CallbackQuery):
     await call.answer(cache_time=1)
@@ -181,12 +181,13 @@ async def channel_list(call: types.CallbackQuery):
 
 # STATISKA KORISH UCHUN
 import pytz
-import datetime
 
 @dp.callback_query_handler(IsSuperAdmin(), text="statistics")
 async def stat(call: types.CallbackQuery):
     await call.answer(cache_time=1)
     uzbekistan_tz = pytz.timezone('Asia/Tashkent')
+    import datetime
+
     datas = datetime.datetime.now(uzbekistan_tz)
     yil_oy_kun = datas.date() 
     soat_minut_sekund = f"{datas.hour}:{datas.minute}:{datas.second}" 
@@ -728,7 +729,7 @@ from data.config import ADMINS
 async def private_promocode(call: types.CallbackQuery):
     await call.answer(cache_time=1)
     try:
-        text = "<b>Yaxshi Maxfiy promo necha kishilik bo'lishi va nech puldan bo'lishini yuboring.`Odamlar Soni`,`PromoCode Qiymati`,`Necha Kun Amal qilishi`\nMisol uchun: 1,1000,5</b>"
+        text = "<b>Yaxshi Maxfiy promoCode necha kishilik bo'lishi va nech puldan bo'lishini yuboring.`Odamlar Soni`,`PromoCode Qiymati`,`Necha Kun Amal qilishi`\nMisol uchun: 1,1000,5</b>"
         markup = InlineKeyboardMarkup(row_width=1)
         markup.insert(InlineKeyboardButton(text="⬅️Orqaga",callback_data="create_new_promo_code"))
         await call.message.edit_text(text=text,reply_markup=markup)
@@ -779,23 +780,8 @@ async def generate_promo_code_for_private(message: types.Message, state: FSMCont
 
     promo_code = generate_unique_promo_code()
 
-    try:
-        # Faylni o'qish
-        with open('promo_codes.json', 'r') as file:
-            promo_data = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        promo_data = {'promo_codes': {}}
-    promo_data = {'promo_codes': {}}
+    
     timeNow = datetime.now()
-    # Yangi promo-kodni qo'shish
-    promo_data['promo_codes'][promo_code] = {
-        "count": int(person_count),
-        "price": int(promo_price),
-        "finish": end_date,
-        "users": [],
-        "status": "private"
-    }
-
     promocode_service.create_promocode(code=promo_code,start_date=timeNow,end_date=end_date,used_count=int(person_count),price=int(promo_price))
     # Faylga yozish
     # with open('promo_codes.json', 'w') as file:
@@ -812,7 +798,7 @@ async def generate_promo_code_for_private(message: types.Message, state: FSMCont
 async def public_promocode(call: types.CallbackQuery):
     await call.answer(cache_time=1)
     try:
-        text = "<b>Yaxshi Ommaviy promo necha kishilik bo'lishi kerak va necha puldan bo'lishi kerak.</b>"
+        text = "<b>Yaxshi Ommaviy(Public) promoCode necha kishilik bo'lishi va nech puldan bo'lishini yuboring.`Odamlar Soni`,`PromoCode Qiymati`,`Necha Kun Amal qilishi`\nMisol uchun: 1,1000,5</b>"
         markup = InlineKeyboardMarkup(row_width=1)
         markup.insert(InlineKeyboardButton(text="⬅️Orqaga",callback_data="create_new_promo_code"))
         await call.message.edit_text(text=text,reply_markup=markup)
@@ -827,13 +813,17 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 async def generate_promo_code_for_public(message: types.Message, state: FSMContext):
     data = message.text.rsplit(",")
 
-    # Input validation
-    if len(data) < 2:
+    
+    if len(data) < 3:
         await message.answer("Iltimos, to'g'ri formatda kiriting: Odamlar soni, PromoCode Narxi")
         return
 
     person_count = data[0].strip()
     promo_price = data[1].strip()
+    end_day_count = data[2].strip()
+    today = datetime.today()
+
+    end_date = today + timedelta(days=int(end_day_count))
 
     if not person_count.isdigit() or not promo_price.isdigit() or int(person_count) <= 0 or int(promo_price) <= 0:
         await message.answer("Iltimos, musbat sonlarni kiriting: <Odamlar soni>, <PromoCode Narxi>")
@@ -841,30 +831,14 @@ async def generate_promo_code_for_public(message: types.Message, state: FSMConte
 
     promo_code = generate_unique_promo_code()
 
-    # Faylni o'qish yoki boshlang'ich tuzilmani yaratish
-    try:
-        with open('promo_codes.json', 'r') as file:
-            promo_data = json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        promo_data = {'promo_codes': {}}
+    timeNow = datetime.now()
+    promocode_data = promocode_service.create_promocode(code=promo_code,start_date=timeNow,end_date=end_date,used_count=int(person_count),price=int(promo_price),status='public')
 
-    # Yangi promo-kodni qo'shish
-    promo_data['promo_codes'][promo_code] = {
-        "count": int(person_count),
-        "price": int(promo_price),
-        "users": [],
-        "status": "public",
-        "message_id":"",
-        "channel":""
-    }
 
-    # Faylga yozish
-    with open('promo_codes.json', 'w') as file:
-        json.dump(promo_data, file, indent=4)
 
-    # Ma'lumotlarni tayyorlash
-    users_count = len(promo_data['promo_codes'][promo_code]['users'])
-    max_count = promo_data['promo_codes'][promo_code]['count']
+   
+    users_count = 0
+    max_count = promocode_data['used_count']
     bosh_joylar = max_count - users_count
 
     text = (
@@ -878,15 +852,16 @@ async def generate_promo_code_for_public(message: types.Message, state: FSMConte
     bot_name = (await bot.get_me()).username
     markup.insert(InlineKeyboardButton(text="🤖 Botga o'tish", url=f"t.me/{bot_name}"))
 
-    # Javoblar yuborish
     await message.answer(f"✅ Ommaviy PromoCodingiz muvaffaqiyatli yaratildi: <code>{promo_code}</code>")
     xabar = await bot.send_message(chat_id=PROMOCODE_CHANNEL, text=text, reply_markup=markup)
-    with open('promo_codes.json', 'r') as file:
-            promo_data = json.load(file)
-    promo_data['promo_codes'][promo_code]['message_id']=xabar.message_id
-    promo_data['promo_codes'][promo_code]['channel']=PROMOCODE_CHANNEL
-    with open('promo_codes.json', 'w') as file:
-        json.dump(promo_data, file, indent=4)
+    promocode_service.update_promocode(promocode_id=promocode_data['id'],
+                                        code=promo_code,
+                                       start_date=timeNow,
+                                       end_date=end_date,
+                                       message_id = xabar.message_id,
+                                       used_count=int(person_count),
+                                       price=int(promo_price))
+    
     await state.finish()
 
 
