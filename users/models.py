@@ -2,16 +2,21 @@ from django.db import models
 from django.utils import timezone
 from django.utils.timezone import now
 from datetime import timedelta
+ 
+
+
 class User(models.Model):
     name = models.CharField(verbose_name='Fullname', max_length=100)
     username = models.CharField(verbose_name='Username', max_length=200, null=True,blank=True)
     author = models.CharField(verbose_name='Mualif', max_length=200, null=True,blank=True)
     univer = models.CharField(verbose_name='Universitet', max_length=200, null=True,blank=True)
+
     LANGUAGE_CHOICES = [
         ('eng', 'English'),
         ('uzb', 'Uzbek'),
         ('rus', 'Russian'),
     ]
+    
     
     language = models.CharField(
         max_length=3,
@@ -31,8 +36,18 @@ class User(models.Model):
         return self.name
 
 class Promocode(models.Model):
+    class Status(models.TextChoices):
+        PUBLIC = 'public', 'Public'
+        PRIVATE = 'private', 'Private'
+
     code = models.CharField(max_length=100, unique=True)
     price = models.BigIntegerField(verbose_name='Promocode Price', null=True, blank=True)
+    message_id = models.BigIntegerField(verbose_name='Message ID', null=True, blank=True)
+    status = models.CharField(
+        max_length=100,
+        choices=Status.choices,
+        default=Status.PRIVATE
+    )
     is_active = models.BooleanField(default=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
