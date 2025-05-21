@@ -206,7 +206,7 @@ async def handle_mustaqil_author_NAME_message(message: types.Message, state: FSM
             print('salom')
     except Exception as e:
         await state.finish()
-        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"{message.from_user.username}.{message.from_user.id}xatolik: ai.py ,line:70:error:{e}")
 
 
 # Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi....
@@ -253,7 +253,7 @@ async def handle_referal_success_message(call: types.CallbackQuery):
         else:
             print('salom')
     except Exception as e:
-        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"{call.from_user.username}.{call.from_user.id}xatolik: ai.py ,line:70:error:{e}")
 
 # Referat mavzusini olamiz
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Referat)
@@ -304,7 +304,7 @@ async def handle_referal_message(message: types.Message, state: FSMContext):
             await ServicesStates.Referat_AUTHOR_NAME.set()
     except Exception as e:
         await state.finish()
-        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:52:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"{message.from_user.username}.{message.from_user.id}xatolik: ai.py ,line:70:error:{e}")
 
 # Register foydalanuvningg ismini olamiz va instinutini olamiz.
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Referat_AUTHOR_NAME)
@@ -359,7 +359,7 @@ async def handle_referal_author_NAME_message(message: types.Message, state: FSMC
             print('salom')
     except Exception as e:
         await state.finish()
-        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"{message.from_user.username}.{message.from_user.id}xatolik: ai.py ,line:70:error:{e}")
 
 @dp.callback_query_handler(IsUser(),text_contains="cancel:")
 async def referal_cancel(call: types.CallbackQuery):
