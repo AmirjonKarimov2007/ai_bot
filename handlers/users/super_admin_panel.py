@@ -264,7 +264,7 @@ async def send_advertisement_to_user(message: types.Message, state: FSMContext):
     black_list = 0
     white_list = 0
     seriy_list = 0
-    datas = datetime.datetime.now()
+    datas = datetime.now()
     boshlanish_vaqti = f"{datas.hour}:{datas.minute}:{datas.second}"
 
     start_msg = await message.answer(f"📢 Reklama jo'natish boshlandi...\n"
@@ -313,7 +313,7 @@ async def send_advertisement_to_user(message: types.Message, state: FSMContext):
                  f"🔖 Qolgan: {len(user_list) - (white_list + black_list + seriy_list)}"
         )
 
-    data = datetime.datetime.now()
+    data = datetime.now()
     tugash_vaqti = f"{data.hour}:{data.minute}:{data.second}"
     
     text = (f'<b>✅ Reklama muvaffaqiyatli yuborildi!</b>\n\n'
