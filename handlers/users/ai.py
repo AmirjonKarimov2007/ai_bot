@@ -50,6 +50,7 @@ async def text_generator(type,user_id,ai=False):
         data[str(user_id)]['rejalar'] = themes
         with open('user_info.json', "w", encoding="utf-8") as file:
             json.dump(data, file, indent=4, ensure_ascii=False)
+        print('salom')
         themes.join('\n')
         caption+=themes
     else:
@@ -144,11 +145,14 @@ async def handle_mustaqil_message(message: types.Message, state: FSMContext):
             await message.answer(text=caption,reply_markup=markup)
             await state.finish()
         else:
+            await timeicon.delete()
+
             text = """Institut va kafedrangizni(majburiy emas) to'liq kiriting.
 📋Namuna: FARG‘ONA DAVLAT UNIVERSITETI IQTISODIYOT KAFEDRASI"""
             await message.answer(text=f"<b>{text}</b>")
             await ServicesStates.Mustaqil_AUTHOR_NAME.set()
     except Exception as e:
+        await timeicon.delete()
         await state.finish()
         await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:52:error:{e}")
 
@@ -169,6 +173,7 @@ async def handle_mustaqil_author__message(message: types.Message, state: FSMCont
             caption = await text_generator(
                 type=service,
                 user_id=message.from_user.id,
+                ai=True
 
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
@@ -181,7 +186,7 @@ async def handle_mustaqil_author__message(message: types.Message, state: FSMCont
             await ServicesStates.SUCCESS_SERVICE.set()
     except Exception as e:
         await state.finish()
-        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:137:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik:mustaqil ish, ai.py ,line:137:error:{e}")
 
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.SUCCESS_SERVICE)
 async def handle_mustaqil_author_NAME_message(message: types.Message, state: FSMContext):
@@ -196,6 +201,7 @@ async def handle_mustaqil_author_NAME_message(message: types.Message, state: FSM
             caption = await text_generator(
                 type=service,
                 user_id=message.from_user.id,
+                ai=True
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
             caption += f"• Biror ma'lumotni o'zgartirish uchun, '✏️O'zgartirish'.\n"
@@ -206,7 +212,7 @@ async def handle_mustaqil_author_NAME_message(message: types.Message, state: FSM
             print('salom')
     except Exception as e:
         await state.finish()
-        await bot.send_message(chat_id=ADMINS[0],text=f"{message.from_user.username}.{message.from_user.id}xatolik: ai.py ,line:70:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"{message.from_user.username}.{message.from_user.id}xatolik:mustaqil ish success, ai.py ,line:70:error:{e}")
 
 
 # Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi....
@@ -298,6 +304,7 @@ async def handle_referal_message(message: types.Message, state: FSMContext):
             await message.answer(text=caption,reply_markup=markup)
             await state.finish()
         else:
+            await timeicon.delete()
             text = """Institut va kafedrangizni(majburiy emas) to'liq kiriting.
 📋Namuna: FARG‘ONA DAVLAT UNIVERSITETI IQTISODIYOT KAFEDRASI"""
             await message.answer(text=f"<b>{text}</b>")
@@ -323,6 +330,7 @@ async def handle_referal_author__message(message: types.Message, state: FSMConte
             caption = await text_generator(
                 type=service,
                 user_id=message.from_user.id,
+                ai=True
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
             caption += f"• Biror ma'lumotni o'zgartirish uchun, '✏️O'zgartirish'.\n"
@@ -349,6 +357,7 @@ async def handle_referal_author_NAME_message(message: types.Message, state: FSMC
             caption = await text_generator(
                 type=service,
                 user_id=message.from_user.id,
+                
             )
             caption += f"• Ma'lumotlar to'g'ri bo'lsa, '✅Tayyorlash'\n"
             caption += f"• Biror ma'lumotni o'zgartirish uchun, '✏️O'zgartirish'.\n"
