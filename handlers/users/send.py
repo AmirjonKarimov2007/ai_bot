@@ -220,7 +220,7 @@ async def promocode(message: types.Message,state: FSMContext):
 
                 await db.update_balances(user_id=message.from_user.id,sum=int(balance)+int(price))
 
-                await promocode_service.create_promocode_usage(user_id=user[0]['id'],promocode_id=promocode_id)
+                promocode_service.create_promocode_usage(user_id=user[0]['id'],promocode_id=promocode_id)
                 await message.answer(f"<b>✅PromoCode Muvaffaqiyatli aktivatsiya bo'ldi va Balansingiz {price} so'mga yangilandi.</b>")
                 text = f"Foydalanuvchi: {message.from_user.first_name},<code>{promocode} </code>ni aktivatsiya qildi\n\n"
                 for admin in ADMINS:
