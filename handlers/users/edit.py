@@ -196,6 +196,9 @@ async def change_service_plans(call: types.CallbackQuery,state:FSMContext):
     except Exception as e:
         await bot.send_message(chat_id=ADMINS[0],text=f"Xatolik yuz berdi 190-line:-> {e}")
 
+
+#///////---------------------------------------Rejalarni tahrir qilish uchun handlarlar----------------------------------------------
+#///////---------------------------------------Rejalarni tahrir qilish uchun handlarlar----------------------------------------------
 from .ai import themeCreator
 @dp.callback_query_handler(IsUser(),text_contains="change_plan_auto:",state='*')
 async def autogenerateplan(call: types.CallbackQuery):
@@ -231,12 +234,99 @@ async def autogenerateplan(call: types.CallbackQuery):
     except Exception as e:
         print(e)
 
+@dp.callback_query_handler(IsUser(), text_contains="change_plan_by_hand:", state='*')
+async def change_plan_by_hand(call: types.CallbackQuery):
+    try:
+        service = call.data.split(":")[1]
+        patterns = re.findall(r"\d+\.\s+.*", call.message.text)
+        plan_items = [plan + "\n" for plan in patterns]
+        
+        markup = InlineKeyboardMarkup(row_width=1)
+        for index, plan in enumerate(plan_items):
+            markup.insert(InlineKeyboardButton(
+                text=plan,
+                callback_data=f'plan_changing_by_hand:{index}:{service}'
+            ))
+        
+        markup.insert(InlineKeyboardButton(
+            text="⬅️Orqaga",
+            callback_data=f'change_plan:{service}'
+        ))
+        
+        await call.message.edit_reply_markup(reply_markup=markup)
+        
+    except Exception as e:
+        await call.answer("Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.", show_alert=True)
+
+
+@dp.callback_query_handler(IsUser(), text_contains="plan_changing_by_hand:", state='*')
+async def change_plan_by_hand_for_index(call: types.CallbackQuery, state: FSMContext):
+    try:
+        await call.answer(cache_time=1)
+        _, index, service = call.data.split(':')
+        await state.update_data({
+            "id": int(index),
+            "service": service
+        })
+        await call.message.edit_text(f"Iltimos, {int(index)+1}-reja uchun yangi mavzu yuboring 😊")
+        await SERVICE_EDIT.Referat_Plan_edit.set()
+        
+    except Exception as e:
+        await call.answer("Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.", show_alert=True)
+
+
+@dp.message_handler(IsUser(), state=SERVICE_EDIT.Referat_Plan_edit)
+async def change_plan_by_hand_state(message: types.Message, state: FSMContext):
+    try:
+        loading_msg = await message.answer("⏳ Yangilanmoqda...")
+        user_id = str(message.from_user.id)
+        state_data = await state.get_data()
+        index = state_data['id']
+        service = state_data['service']
+        
+        try:
+            with open('user_info.json', 'r', encoding='utf-8') as file:
+                data_json = json.load(file)
+        except FileNotFoundError:
+            data_json = {}
+        except json.JSONDecodeError:
+            data_json = {}
+        
+        if user_id not in data_json:
+            data_json[user_id] = {'rejalar': '', 'mavzu': ''}
+        
+        plan_list = data_json[user_id].get('rejalar', '').split('\n')
+        
+        if 0 <= index < len(plan_list):
+            plan_list[index] = f"{index+1}. {message.text}"
+        else:
+            raise IndexError("Invalid plan index")
+        
+        data_json[user_id]['rejalar'] = '\n'.join(plan_list)
+        
+        with open('user_info.json', 'w', encoding='utf-8') as file:
+            json.dump(data_json, file, ensure_ascii=False, indent=4)
+        
+        caption = await text_generator(type=service, user_id=message.from_user.id)
+        caption += "<b>Nimani o'zgartirmoqchisiz❓ Quyidagilardan birini tanlang👇</b>"
+        
+        markup = editable_keyboards(service=service)
+        
+        await loading_msg.delete()
+        await message.answer(text=caption, reply_markup=markup)
+        await state.finish()
+        
+    except IndexError as e:
+        await message.answer("⚠️ Noto'g'ri reja raqami. Iltimos, qaytadan urinib ko'ring.")
+    except Exception as e:
+        await message.answer("⚠️ Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.")
+        await state.finish()
 
 
 
-#///////---------------------------------------Rejalarni tahrir qilish uchun handlarlar----------------------------------------------
-#///////---------------------------------------Rejalarni tahrir qilish uchun handlarlar----------------------------------------------
 
+
+# Sahifalar uchun tahrirlash handlerlari
 @dp.callback_query_handler(IsUser(),text_contains="add_page:",state='*')
 async def add_page(call: types.CallbackQuery):
     call_info = call.data.rsplit(":")

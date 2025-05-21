@@ -19,7 +19,7 @@ def editable_keyboards(service):
 def plans_keyboard(service):
     markup = InlineKeyboardMarkup(row_width=2)
     markup.insert(InlineKeyboardButton(text="♻️ Auto Yangilash", callback_data=f"change_plan_auto:{service}"))
-    markup.insert(InlineKeyboardButton(text="✍️ Qo'lda Yangilash(coming soon)", callback_data=f"change_plan_by_hand:{service}"))
+    markup.insert(InlineKeyboardButton(text="✍️ Qo'lda Yangilash(Coming Soon)", callback_data=f"change_plan_by_hand:{service}"))
     markup.add(InlineKeyboardButton(text="⬅️ Orqaga", callback_data=f"edit:{service}"))
     return markup
 def success_keyboards(service):
