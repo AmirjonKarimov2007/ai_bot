@@ -51,21 +51,28 @@ async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, them
             run.font.size = Pt(14)
 
     rejalar_ = doc.add_page_break()
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
 
     # Mavzu va matnlar qo'shish
     for mavzu, text in theme_text.items():
         mavzu_text = doc.add_paragraph(mavzu)
+        mavzu_text.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         for run in mavzu_text.runs:
             run.font.name = 'Times New Roman'
             run.bold = True
             run.font.size = Pt(14)
 
-        teks_text = doc.add_paragraph(text)
+        teks_text = doc.add_paragraph(f"     {text}")
+        teks_text.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         for run in teks_text.runs:
             run.font.name = 'Times New Roman'
             run.font.size = Pt(14)
-        teks_text = doc.add_page_break()
+        
+        # Add page break only if it's not the last item
+        if list(theme_text.keys())[-1] != mavzu:
+            doc.add_page_break()
 
+    
     # Faylni BytesIO obyektiga yozish
     file_stream = BytesIO()
     await loop.run_in_executor(None, doc.save, file_stream)
