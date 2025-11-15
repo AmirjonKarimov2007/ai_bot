@@ -1,80 +1,145 @@
 from io import BytesIO
 from docx import Document
 from docx.shared import Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+import re
+import html
 import asyncio
-async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, theme_text: dict):
-    # Word hujjatini yaratish
-    loop = asyncio.get_event_loop()
-    doc = await loop.run_in_executor(None, Document, "Referal.docx")
 
+
+def clean_text(txt: str):
+    """Matndan HTML entity-lar va nosoz apostroflarni tozalaydi"""
+    if not txt:
+        return txt
+
+    # HTML entity-larni oddiy belgiga aylantirish
+    txt = html.unescape(txt)
+
+    # Turli ko‘rinishdagi apostroflarni bitta `'` ga almashtirish
+    txt = re.sub(r"[‘’´`]", "'", txt)
+
+    # Ikkita yoki ko‘p apostroflarni bitta `'` qilish ('' → ')
+    txt = re.sub(r"'+", "'", txt)
+
+    # Ortiqcha bo'shliqlarni tozalash
+    return txt.strip()
+
+
+def add_page_border(doc):
+    """Word hujjatiga chiroyli qalin ramka qo‘shadi."""
+    sectPr = doc.sections[0]._sectPr
+
+    pgBorders = OxmlElement('w:pgBorders')
+    pgBorders.set(qn('w:offsetFrom'), 'page')
+
+    for side in ['top', 'left', 'bottom', 'right']:
+        border = OxmlElement(f'w:{side}')
+        border.set(qn('w:val'), 'single')    # chiziq turi
+        border.set(qn('w:sz'), '24')         # qalinlik (24 = qalin)
+        border.set(qn('w:space'), '24')      # matnga masofa
+        border.set(qn('w:color'), '000000')  # qora rang
+        pgBorders.append(border)
+
+    sectPr.append(pgBorders)
+
+
+async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, theme_text: dict):
+
+    # ----------------------------
+    # 1) Kiruvchi matnlarni tozalash
+    # ----------------------------
+    type = clean_text(type)
+    mavzu = clean_text(mavzu)
+    univer = clean_text(univer)
+    name = clean_text(name)
+
+    doc = Document("Referal.docx")
+
+    # ----------------------------
+    # RAMKA QO‘SHISH
+    # ----------------------------
+    add_page_border(doc)
+
+    # ----------------------------
+    # 2) Placeholderlarni almashtirish
+    # ----------------------------
     for paragraph in doc.paragraphs:
-        for run in paragraph.runs:
-            if "TypeType" in run.text:
-                run.text = run.text.replace("TypeType", type.upper())
-                run.font.name = 'Times New Roman'
+        old_text = paragraph.text
+
+        new_text = (
+            old_text.replace("TypeType", type.upper())
+                    .replace("UNIVER,UNIVER,UNIVER,UNIVER", univer.upper())
+                    .replace("ThemeTheme", mavzu.title())
+                    .replace("namenamename", name.title())
+        )
+
+        if old_text != new_text:
+            paragraph.clear()
+            run = paragraph.add_run(new_text)
+            run.font.name = "Times New Roman"
+
+            if "TypeType" in old_text:
                 run.font.size = Pt(54)
                 run.bold = True
-            if "UNIVER,UNIVER,UNIVER,UNIVER" in run.text:
-                run.text = run.text.replace("UNIVER,UNIVER,UNIVER,UNIVER", univer.upper())
-                run.font.name = 'Times New Roman'
-                run.font.size = Pt(16)
-            if "ThemeTheme" in run.text:
-                run.text = run.text.replace("ThemeTheme", mavzu.title())
-                run.font.name = 'Times New Roman'
-                run.font.size = Pt(14)
-            if "namenamename" in run.text:
-                run.text = run.text.replace("namenamename", name.title())
-                run.font.name = 'Times New Roman'
+            else:
                 run.font.size = Pt(14)
 
-    # Yangi sahifa qo'shish
-    def add_new_page(doc):
-        paragraph = doc.add_paragraph()
-        run = paragraph.add_run()
-        run._r.addnext(OxmlElement('w:br'))
+    # ----------------------------
+    # 3) Sahifa ajratuvchi
+    # ----------------------------
+    doc.add_page_break()
 
-    add_new_page(doc)
-
-    # "Rejalar" sarlavhasi va rejalar qo'shish
-    reja_heading = doc.add_paragraph("Rejalar")
-    for run in reja_heading.runs:
-        run.font.name = 'Times New Roman'
-        run.font.bold = True
-        run.font.size = Pt(14)
+    # ----------------------------
+    # 4) Rejalar bo‘limi
+    # ----------------------------
+    heading = doc.add_paragraph("Rejalar")
+    hrun = heading.runs[0]
+    hrun.font.name = "Times New Roman"
+    hrun.font.bold = True
+    hrun.font.size = Pt(14)
 
     for reja in rejalar:
-        rejalar_ = doc.add_paragraph(reja)
-        for run in rejalar_.runs:
-            run.font.name = 'Times New Roman'
-            run.italic = True
-            run.font.size = Pt(14)
+        text = clean_text(reja)
+        p = doc.add_paragraph(text)
+        run = p.runs[0]
+        run.font.name = "Times New Roman"
+        run.italic = True
+        run.font.size = Pt(14)
 
-    rejalar_ = doc.add_page_break()
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    doc.add_page_break()
 
-    # Mavzu va matnlar qo'shish
-    for mavzu, text in theme_text.items():
-        mavzu_text = doc.add_paragraph(mavzu)
-        mavzu_text.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        for run in mavzu_text.runs:
-            run.font.name = 'Times New Roman'
+    # ----------------------------
+    # 5) Mavzular bo‘limi
+    # ----------------------------
+    last_key = list(theme_text.keys())[-1]
+
+    for title, text in theme_text.items():
+        title = clean_text(title)
+        text = clean_text(text)
+
+        p_title = doc.add_paragraph(title)
+        p_title.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        for run in p_title.runs:
+            run.font.name = "Times New Roman"
             run.bold = True
             run.font.size = Pt(14)
 
-        teks_text = doc.add_paragraph(f"     {text}")
-        teks_text.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        for run in teks_text.runs:
-            run.font.name = 'Times New Roman'
+        p_text = doc.add_paragraph("     " + text)
+        p_text.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        for run in p_text.runs:
+            run.font.name = "Times New Roman"
             run.font.size = Pt(14)
-        
-        # Add page break only if it's not the last item
-        if list(theme_text.keys())[-1] != mavzu:
+
+        if title != last_key:
             doc.add_page_break()
 
-    
-    # Faylni BytesIO obyektiga yozish
+    # ----------------------------
+    # 6) Word faylni BytesIO ga yozish
+    # ----------------------------
     file_stream = BytesIO()
-    await loop.run_in_executor(None, doc.save, file_stream)
+    doc.save(file_stream)
     file_stream.seek(0)
+
     return file_stream

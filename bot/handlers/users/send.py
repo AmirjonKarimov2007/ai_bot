@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from datetime import datetime, timedelta
 from data.config import ADMINS
@@ -8,15 +9,19 @@ from aiogram.dispatcher.filters.builtin import CommandStart
 from keyboards.default.menu import *
 from loader import dp, db,bot
 from keyboards.inline.boglanish_button import get_premium_keyboard,service_keyboard
-
+from data.config import PROMOCODE_CHANNEL
+from states.admin_state import SuperAdminState
+from aiogram.dispatcher import FSMContext
+from aiogram.types import *
+import asyncio
+from utils.promocode_api import promocode_service
 from loader import db,dp,bot
 from aiogram import types
 from keyboards.default.menu import *
 from filters.users import IsUser
-
-
-
 from keyboards.inline.main_menu_super_admin import services_keyboards__board
+
+
 @dp.message_handler(IsUser(),text='✅Foydalanish',state='*')
 async def echo(message: types.Message):
     await message.answer(f"<b>Qaysi Xizmatdan Foydalanmoqchisiz:</b>",reply_markup=services_keyboards__board())
@@ -127,7 +132,6 @@ async def bot_start_qollanma(message: types.Message):
             print(e)
 
 
-import json
 
 @dp.message_handler(IsUser(),text="👨‍💻 Administrator",state='*')
 async def admin(message:types.Message):
@@ -146,17 +150,12 @@ async def admin(message:types.Message):
 
 
 # PromoCode olish
-from data.config import PROMOCODE_CHANNEL
-from states.admin_state import SuperAdminState
-from aiogram.dispatcher import FSMContext
 
 # PROMOCode PROMOCODE PROMOCODE PROMOCODE PROMOCODE PROMOCODE
 # PROMOCode PROMOCODE PROMOCODE PROMOCODE PROMOCODE PROMOCODE
 # PROMOCode PROMOCODE PROMOCODE PROMOCODE PROMOCODE PROMOCODE
 # PROMOCode PROMOCODE PROMOCODE PROMOCODE PROMOCODE PROMOCODE
-from aiogram.types import *
-import asyncio
-from utils.promocode_api import promocode_service
+
 
 async def check_promocode(promocode,user_id):
     promoCodes = promocode_service.get_all_promcodes()
