@@ -2,15 +2,36 @@ from io import BytesIO
 from docx import Document
 from docx.shared import Pt
 from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 import asyncio
 import html
+
+def add_page_border(doc):
+    section = doc.sections[0]
+    sectPr = section._sectPr
+
+    pgBorders = OxmlElement('w:pgBorders')
+    pgBorders.set(qn('w:offsetFrom'), 'page')
+
+    for border in ["top", "left", "bottom", "right"]:
+        element = OxmlElement(f'w:{border}')
+        element.set(qn('w:val'), 'single')  # simple line
+        element.set(qn('w:sz'), '12')       # thickness
+        element.set(qn('w:space'), '24')    # spacing
+        element.set(qn('w:color'), '000000')  # black color
+        pgBorders.append(element)
+
+    sectPr.append(pgBorders)
+
 async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, theme_text: dict):
-    # Word hujjatini yaratish
     name = html.unescape(name)
     univer = html.unescape(univer)
 
     loop = asyncio.get_event_loop()
     doc = await loop.run_in_executor(None, Document, "Referal.docx")
+
+    # >>> RAMKA QO'SHISH <<<
+    add_page_border(doc)
 
     for paragraph in doc.paragraphs:
         for run in paragraph.runs:
@@ -32,15 +53,12 @@ async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, them
                 run.font.name = 'Times New Roman'
                 run.font.size = Pt(14)
 
-    # Yangi sahifa qo'shish
     def add_new_page(doc):
-        paragraph = doc.add_paragraph()
-        run = paragraph.add_run()
-        run._r.addnext(OxmlElement('w:br'))
+        doc.add_page_break()
 
     add_new_page(doc)
 
-    # "Rejalar" sarlavhasi va rejalar qo'shish
+    # Rejalar
     reja_heading = doc.add_paragraph("Rejalar")
     for run in reja_heading.runs:
         run.font.name = 'Times New Roman'
@@ -48,16 +66,16 @@ async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, them
         run.font.size = Pt(14)
 
     for reja in rejalar:
-        rejalar_ = doc.add_paragraph(reja)
-        for run in rejalar_.runs:
+        p = doc.add_paragraph(reja)
+        for run in p.runs:
             run.font.name = 'Times New Roman'
             run.italic = True
             run.font.size = Pt(14)
 
-    rejalar_ = doc.add_page_break()
+    doc.add_page_break()
     from docx.enum.text import WD_ALIGN_PARAGRAPH
 
-    # Mavzu va matnlar qo'shish
+    # Mavzular va matnlar
     for mavzu, text in theme_text.items():
         mavzu_text = doc.add_paragraph(mavzu)
         mavzu_text.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -71,13 +89,11 @@ async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, them
         for run in teks_text.runs:
             run.font.name = 'Times New Roman'
             run.font.size = Pt(14)
-        
-        # Add page break only if it's not the last item
+
         if list(theme_text.keys())[-1] != mavzu:
             doc.add_page_break()
 
-    
-    # Faylni BytesIO obyektiga yozish
+    # Return file
     file_stream = BytesIO()
     await loop.run_in_executor(None, doc.save, file_stream)
     file_stream.seek(0)
