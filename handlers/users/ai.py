@@ -24,7 +24,6 @@ uzbekistan_tz = pytz.timezone('Asia/Tashkent')
 from keyboards.inline.boglanish_button import get_premium_keyboard
 
 
-
 async def text_generator(type,user_id,ai=False):
     with open('user_info.json','r',encoding='utf-8') as file:
         data = json.load(file)
@@ -50,14 +49,17 @@ async def text_generator(type,user_id,ai=False):
         data[str(user_id)]['rejalar'] = themes
         with open('user_info.json', "w", encoding="utf-8") as file:
             json.dump(data, file, indent=4, ensure_ascii=False)
-        themes.join('\n')
-        caption+=themes
     else:
-        themes = data[str(user_id)]['rejalar']
-        themes.join('\n')
+        themes = data[str(user_id)].get('rejalar', [])
 
-        caption+=themes
+    # <-- Faqat shu qismi yangilandi
+    if isinstance(themes, list):
+        caption += "\n".join(themes)
+    else:
+        caption += str(themes)
+
     return f"{caption}\n\n"
+
 
 async def check_info(user_id):
     user = await db.is_user(user_id=int(user_id))
