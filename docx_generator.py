@@ -3,8 +3,12 @@ from docx import Document
 from docx.shared import Pt
 from docx.oxml import OxmlElement
 import asyncio
+import html
 async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, theme_text: dict):
     # Word hujjatini yaratish
+    name = html.unescape(name)
+    univer = html.unescape(univer)
+
     loop = asyncio.get_event_loop()
     doc = await loop.run_in_executor(None, Document, "Referal.docx")
 

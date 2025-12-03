@@ -207,7 +207,7 @@ async def tasdiqlangan_tolov(call: types.CallbackQuery):
                                     number=int(number),created_date=datas,updated_date=datas,invoice=invoice)
             await db.update_balance(user_id=int(user_id),sum=int(user_price))
             await call.answer("✅Foydalanuvchining balansini yangiladingiz?",show_alert=True)
-            user = await db.select_user(user_id=int(call.from_user.id))
+            user = await db.select_user(user_id=int(user_id))
             balance = user[0]['balance']
             text = f"✅ To'lovingiz qabul qilindi.\n"
             text += f"Balansingiz {user_price}ga to'ldirildi.\n"

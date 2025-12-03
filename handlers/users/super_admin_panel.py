@@ -1,7 +1,6 @@
 from keyboards.inline.main_menu_super_admin import edit_services_prices
 import re
 import time
-import datetime
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -255,73 +254,157 @@ async def send_advertisement(call: types.CallbackQuery):
 
 from asyncio import Semaphore,gather
 from asyncio import Semaphore, gather, sleep
+import datetime
+
 
 @dp.message_handler(IsSuperAdmin(), state=SuperAdminState.SUPER_ADMIN_STATE_GET_ADVERTISEMENT,
                     content_types=types.ContentTypes.ANY)
 async def send_advertisement_to_user(message: types.Message, state: FSMContext):
     users = await db.stat(timeframe='all')
     user_list = await db.select_all_users()
+
     black_list = 0
     white_list = 0
-    seriy_list = 0
-    datas = datetime.datetime.now()
+
+    datas = datetime.now()
     boshlanish_vaqti = f"{datas.hour}:{datas.minute}:{datas.second}"
 
-    start_msg = await message.answer(f"📢 Reklama jo'natish boshlandi...\n"
-                                    f"📊 Foydalanuvchilar soni: {users} ta\n"
-                                    f"🕒 Kuting...\n")
+    start_msg = await message.answer(
+        f"📢 Reklama jo'natish boshlandi...\n"
+        f"📊 Foydalanuvchilar soni: {users} ta\n"
+        f"🕒 Kuting...\n"
+    )
 
-    semaphore = Semaphore(10)  # 20 o'rniga 10 ga kamaytirish (server yukini kamaytirish)
+    semaphore = Semaphore(15)
     errors = []
 
-    async def send_message(user_id):
-        nonlocal black_list, white_list, seriy_list
+    # =============================
+    # 1) — Bitta userga xabar yuborish
+    # =============================
+    async def try_send(user_id):
+        nonlocal white_list, black_list
+
         async with semaphore:
             try:
                 await bot.copy_message(
-                    chat_id=user_id, 
+                    chat_id=user_id,
                     from_chat_id=message.chat.id,
-                    message_id=message.message_id, 
+                    message_id=message.message_id,
                     reply_markup=message.reply_markup
                 )
                 white_list += 1
-                await sleep(0.1)  # Har bir xabardan keyin qisqa pauza
-            except Exception as e:
-                if "bot was blocked by the user" in str(e):
-                    black_list += 1
-                elif "Too Many Requests" in str(e):
-                    await sleep(5)  # Limitga duch kelganda 5 soniya kutish
-                    seriy_list += 1
-                else:
-                    seriy_list += 1
-                errors.append((user_id, str(e)))
+                await sleep(0.05)
+                return True
 
+            except Exception as e:
+                txt = str(e).lower()
+
+                print(f"[ERROR] User: {user_id} | Xato: {e}")
+
+                if "bot was blocked by the user" in txt:
+                    black_list += 1
+                    return True  
+                if "user is deactivated" in txt:
+                    black_list += 1 
+                    return True      
+
+                if "chat not found" in txt:
+                    black_list += 1
+                    return True
+
+                if "too many requests" in txt:
+                    return False  # retry
+
+                return False
+
+
+    # ==========================================
+    # 2) — Retry funksiyasi (3 marotaba urinish)
+    # ==========================================
+    async def retry_failed_users(failed_users):
+        retry_delays = [3, 1, 1]  # tez ishlashi uchun optimallashtirilgan
+
+        for attempt, delay in enumerate(retry_delays, start=1):
+            await sleep(delay)
+
+            new_failed = []
+
+            tasks = [try_send(user) for user in failed_users]
+            results = await gather(*tasks)
+
+            for idx, ok in enumerate(results):
+                if not ok:
+                    new_failed.append(failed_users[idx])
+
+            failed_users = new_failed
+
+            # progressni yangilash
+            await bot.edit_message_text(
+                chat_id=start_msg.chat.id,
+                message_id=start_msg.message_id,
+                text=(
+                    f"📢 Reklama yuborilmoqda (retry {attempt})...\n"
+                    f"👥 Jami: {users}\n"
+                    f"✅ Yuborildi: {white_list}\n"
+                    f"🚫 Bloklagan: {black_list}\n"
+                    f"🔁 Qayta urinilayotgan: {len(failed_users)}\n"
+                )
+            )
+
+            if not failed_users:
+                break
+
+        return failed_users  # oxirgi qolgani qaytadi
+
+    # ================================
+    # 3) — Barcha userlarga 1-turn yuborish
+    # ================================
+    failed = []
     batch_size = 100
+
     for i in range(0, len(user_list), batch_size):
         batch = user_list[i:i + batch_size]
-        tasks = [send_message(user['user_id']) for user in batch]
-        await gather(*tasks)
-        
-        # Progressni yangilash
+
+        tasks = [try_send(user["user_id"]) for user in batch]
+        results = await gather(*tasks)
+
+        for idx, ok in enumerate(results):
+            if not ok:
+                failed.append(batch[idx]["user_id"])
+
+        # progress
         await bot.edit_message_text(
             chat_id=start_msg.chat.id,
             message_id=start_msg.message_id,
-            text=f"📢 Reklama jo'natilmoqda...\n"
-                 f"📊 Jami: {users} ta\n"
-                 f"✅ Yuborildi: {white_list}\n"
-                 f"🚫 Bloklaganlar: {black_list}\n"
-                 f"🔖 Qolgan: {len(user_list) - (white_list + black_list + seriy_list)}"
+            text=(
+                f"📢 Reklama jo'natilmoqda...\n"
+                f"👥 Jami: {users}\n"
+                f"✅ Yuborildi: {white_list}\n"
+                f"🚫 Bloklagan: {black_list}\n"
+                f"🔁 Xato: {len(failed)}\n"
+            )
         )
 
-    data = datetime.datetime.now()
+    # ===================================
+    # 4) — Xato bo‘lganlarga qayta retry
+    # ===================================
+    final_failed = await retry_failed_users(failed)
+    seriy_list = len(final_failed)
+
+    # =====================
+    # 5) — Yakuniy xabar
+    # =====================
+    data = datetime.now()
     tugash_vaqti = f"{data.hour}:{data.minute}:{data.second}"
-    
-    text = (f'<b>✅ Reklama muvaffaqiyatli yuborildi!</b>\n\n'
-            f'<b>⏰ Boshlangan vaqt: {boshlanish_vaqti}</b>\n'
-            f'<b>👥 Yuborilgan foydalanuvchilar soni: {white_list}</b>\n'
-            f'<b>🚫 Botni Bloklagan foydalanuvchilar soni: {black_list}</b>\n'
-            f'<b>🔖 Reklama Yuborilmagan foydalanuvchilar soni: {seriy_list}</b>\n'
-            f'<b>🏁 Tugash vaqti: {tugash_vaqti}</b>\n')
+
+    text = (
+        f'<b>✅ Reklama yakunlandi!</b>\n\n'
+        f'<b>⏰ Boshlangan: {boshlanish_vaqti}</b>\n'
+        f'<b>👥 Yuborilgan: {white_list}</b>\n'
+        f'<b>🚫 Bloklagan: {black_list}</b>\n'
+        f'<b>🔖 Yuborilmagan (yakuniy xatolik): {seriy_list}</b>\n'
+        f'<b>🏁 Tugagan: {tugash_vaqti}</b>\n'
+    )
 
     await bot.delete_message(chat_id=start_msg.chat.id, message_id=start_msg.message_id)
     await message.answer(text, reply_markup=main_menu_for_super_admin)
@@ -756,7 +839,6 @@ async def check_date(input_date: str) -> bool:
 
     
 from utils.promocode_api import promocode_service
-from datetime import datetime
 
 @dp.message_handler(IsSuperAdmin(), content_types=types.ContentType.TEXT, state=SuperAdminState.CREATE_PRIVATE_PROMOCODE)
 async def generate_promo_code_for_private(message: types.Message, state: FSMContext):

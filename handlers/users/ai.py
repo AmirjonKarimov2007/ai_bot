@@ -500,6 +500,8 @@ async def themeCreator(mavzu,service,language,old_theme='None'):
                 f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
                 f"Uni faqat sarlavha shaklida va to‘liq iboralarda yoz. "
                 f"1.,2.,3. ko'rinishida yoz "
+                "Hech qanday formatlash belgilaridan foydalanma: #, ##, *, **, _, ===, ``, >, [], (), markdown yoki html ishlatma. "
+                    "Faqat oddiy, toza matn yoz."
 
                 "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida hech qanday bosh joy tashlama"
             )
@@ -608,6 +610,8 @@ async def generate_text_for_theme_referat(user_id, theme, language, page_count, 
                     f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
                     f"{language} tilida. Matning 450 so'zdan oshmasin. "
                     "Faqat kerakli matnlarni yubor."
+                     "Hech qanday formatlash belgilaridan foydalanma: #, ##, *, **, _, ===, ``, >, [], (), markdown yoki html ishlatma. "
+                    "Faqat oddiy, toza matn yoz."
                 )
             }
         ]
@@ -625,6 +629,8 @@ async def generate_text_for_theme_referat(user_id, theme, language, page_count, 
                         f"Men seni telegram botga ulaganman. {theme} mavzusida matn kerak. "
                         f"{language} tilida. Matning 700 so'zdan kam ham ko'p ham bo'lmasligi shart.xulosa yozishing shart emas"
                         f"Bu oldingi matning: {previous_text}. Yangi, farqli matn yozib ber."
+                         "Hech qanday formatlash belgilaridan foydalanma: #, ##, *, **, _, ===, ``, >, [], (), markdown yoki html ishlatma. "
+                    "Faqat oddiy, toza matn yoz."
                     )
                 }
             ]
@@ -722,6 +728,8 @@ async def generate_text_for_theme_mustaqil(user_id, theme, language, page_count,
                     f"{theme} mavzusida matn kerak. "
                     f"{language} tilida. Matning 450 so'zdan oshmasin. "
                     "Faqat kerakli matnlarni yubor."
+                     "Hech qanday formatlash belgilaridan foydalanma: #, ##, *, **, _, ===, ``, >, [], (), markdown yoki html ishlatma. "
+                    "Faqat oddiy, toza matn yoz."
                 )
             }
         ]
@@ -739,6 +747,8 @@ async def generate_text_for_theme_mustaqil(user_id, theme, language, page_count,
                         f" {theme} mavzusida matn kerak. "
                         f"{language} tilida. Matning 700 so'zdan kam ham ko'p ham bo'lmasligi shart.xulosa yozishing shart emas"
                         f"Bu oldingi matning: {previous_text}. Yangi, farqli matn yozib ber."
+                         "Hech qanday formatlash belgilaridan foydalanma: #, ##, *, **, _, ===, ``, >, [], (), markdown yoki html ishlatma. "
+                    "Faqat oddiy, toza matn yoz."
                     )
                 }
             ]
@@ -924,6 +934,8 @@ async def gg_generate_bayon(call: types.CallbackQuery):
                 f"Ortiqcha hech narsa demasdan faqat quyidagi promptni bajar: "
                 f"{mavzu} mavzusi bo'yicha {service} uchun 3 ta mavzu yozib ber, {language} tilida. "
                 "Albatta, bajaraman degan so'zlarni yozishing shart emas.mavzular orasida hech qanday bosh joy tashlama"
+                 "Hech qanday formatlash belgilaridan foydalanma: #, ##, *, **, _, ===, ``, >, [], (), markdown yoki html ishlatma. "
+                    "Faqat oddiy, toza matn yoz."
             )
         }
     ]
@@ -950,6 +962,8 @@ async def generate_text_for_theme_bayon(user_id, theme, language, page_count, ma
                     f"{theme} mavzusida matn kerak. "
                     f"{language} tilida. Matn uzunligi: max_length:4080 bo'lishi kerak va undan ochib ketmasligi kerak. "
                     "Faqat kerakli matnlarni yubor.albatta,bajaraman yoki shunga o'xshagan narsalarni yuborma.faqatgina matnni yubor."
+                     "Hech qanday formatlash belgilaridan foydalanma: #, ##, *, **, _, ===, ``, >, [], (), markdown yoki html ishlatma. "
+                    "Faqat oddiy, toza matn yoz."
                 )
             }
         ]
@@ -980,6 +994,8 @@ async def gg_generate_tabrik(call: types.CallbackQuery):
             "content": (
                 f"Menga {ega}ning tug'gilgan kuni  uchun chiroyli tabrik kerak, bu tabrik oldin takrorlanmagan va jarangdor bo'lishi kerak.bu tabrik uning hech kimning esidan chiqmasligi kerak va u uzun bo'lsin stikerlardan ham foydalan."
                 "Albatta, bajaraman degan so'zlarni yozishing shart emas.tabrik meni nomimdan bo'lishi kerak va uni odam yozgandek bo'lib ko'rinishi kerak."
+                 "Hech qanday formatlash belgilaridan foydalanma: #, ##, *, **, _, ===, ``, >, [], (), markdown yoki html ishlatma. "
+                    "Faqat oddiy, toza matn yoz."
             )
         }
     ]

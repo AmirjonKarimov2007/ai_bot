@@ -1,14 +1,15 @@
 {
     "1612270615": {
-        "mavzu": "odamlar",
-        "min": 5,
-        "max": 10,
-        "rejalar": "1. Odamlarning ijtimoiy munosabatlari va ularning kundalik hayotga ta'siri  \n2. Innovatsiyalar va odamlarning professional rivojlanishi  \n3. Madaniyat va odamlar orasidagi aloqa: o'zaro ta'sir va tajriba almashinuvi  "
-    },
-    "5955950834": {
         "mavzu": "pul",
         "min": 5,
-        "max": 10
+        "max": 10,
+        "rejalar": "1. Pulning iqtisodiy ahamiyati va uning hayotdagi roli  \n2. Moliyaviy rejalashtirish va shaxsiy byudjetni boshqarish  \n3. Investitsiya turlari va ularni tanlashda e'tiborga olish lozim bo'lgan omillar  "
+    },
+    "5955950834": {
+        "mavzu": "TABIAT",
+        "min": 5,
+        "max": 10,
+        "rejalar": "1. Orollar va ularning ekotizimlari: Tabiatning ajralmas qismi  \n2. Tabiatda o'simliklar va hayvonlarning o'zaro munosabatlari  \n3. Iqlim o'zgarishi va uning tabiatga ta'siri  "
     },
     "5816753017": {
         "mavzu": "lll",
