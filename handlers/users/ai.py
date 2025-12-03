@@ -206,7 +206,7 @@ async def handle_mustaqil_author_NAME_message(message: types.Message, state: FSM
             print('salom')
     except Exception as e:
         await state.finish()
-        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:209:error:{e}")
 
 
 # Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi...Referat qismi....
@@ -253,7 +253,7 @@ async def handle_referal_success_message(call: types.CallbackQuery):
         else:
             print('salom')
     except Exception as e:
-        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:256:error:{e}")
 
 # Referat mavzusini olamiz
 @dp.message_handler(IsUser(),content_types=ContentTypes.TEXT, state=ServicesStates.Referat)
@@ -359,7 +359,7 @@ async def handle_referal_author_NAME_message(message: types.Message, state: FSMC
             print('salom')
     except Exception as e:
         await state.finish()
-        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:362:error:{e}")
 
 @dp.callback_query_handler(IsUser(),text_contains="cancel:")
 async def referal_cancel(call: types.CallbackQuery):
@@ -398,7 +398,7 @@ async def handle_referal_success_message(call: types.CallbackQuery):
         else:
             print('salom')
     except Exception as e:
-        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line:70:error:{e}")
+        await bot.send_message(chat_id=ADMINS[0],text=f"xatolik: ai.py ,line::error:{e}")
 
 # Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy 
 # Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy intelekt qismi Sun'iy 
