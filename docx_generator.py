@@ -38,7 +38,14 @@ async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, them
     # 1-sahifa (title page) ga ramka qo'shamiz
     add_page_border_to_section(doc.sections[0])
 
-    # Placeholderlarni almashtirish
+    # DEBUG: placeholderlarni tekshirish
+    print("Placeholderlarni tekshirish...")
+    for i, paragraph in enumerate(doc.paragraphs):
+        print(f"Paragraph {i}: {paragraph.text}")
+        for j, run in enumerate(paragraph.runs):
+            print(f"  Run {j}: '{run.text}'")
+
+    # 1. USUL: Avval butun paragraph matnini tekshirish
     for paragraph in doc.paragraphs:
         for run in paragraph.runs:
             if "TypeType" in run.text:
@@ -46,20 +53,20 @@ async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, them
                 run.font.name = 'Times New Roman'
                 run.font.size = Pt(54)
                 run.bold = True
-            # ... qolgan placeholderlar uchun ham shu logika
-            # Misol uchun:
-            if "MAVZUMAVZU" in run.text:
-                run.text = run.text.replace("MAVZUMAVZU", mavzu)
+            if "UNIVER,UNIVER,UNIVER,UNIVER" in run.text:
+                run.text = run.text.replace("UNIVER,UNIVER,UNIVER,UNIVER", univer.upper())
                 run.font.name = 'Times New Roman'
                 run.font.size = Pt(16)
-            if "UNIVERUNIVER" in run.text:
-                run.text = run.text.replace("UNIVERUNIVER", univer)
+            if "ThemeTheme" in run.text:
+                run.text = run.text.replace("ThemeTheme", mavzu.title())
                 run.font.name = 'Times New Roman'
                 run.font.size = Pt(14)
-            if "NAMENAME" in run.text:
-                run.text = run.text.replace("NAMENAME", name)
+            if "namenamename" in run.text:
+                run.text = run.text.replace("namenamename", name.title())
                 run.font.name = 'Times New Roman'
                 run.font.size = Pt(14)
+
+    
 
     # 2-sahifa uchun yangi section yaratamiz
     doc.add_page_break()
