@@ -138,7 +138,7 @@ class PromocodeService:
         
 
 
-base_url = 'http://127.0.0.1:8000'
+base_url = 'https://djangoaibot.alwaysdata.net'
 promocode_service = PromocodeService(base_url)
 
 # response = promocode_service.create_promocode(
