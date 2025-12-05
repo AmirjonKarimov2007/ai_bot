@@ -426,7 +426,7 @@ async def success_handler(call: types.CallbackQuery):
         page_numbers = re.search(r'(\d+dan)\s*–\s*(\d+gacha)', page_range_line)
         max_pages = page_numbers.group(2).replace('gacha', '')
         price = user_data['services']['Referat'][max_pages]
-        if balance>=price:
+        if int(balance)>=int(price):
             await db.update_balances(user_id=call.from_user.id,sum=int(balance)-int(price))
             await gg_generate_referat(call=call)
         else:
@@ -437,7 +437,7 @@ async def success_handler(call: types.CallbackQuery):
         page_numbers = re.search(r'(\d+dan)\s*–\s*(\d+gacha)', page_range_line)
         max_pages = page_numbers.group(2).replace('gacha', '')
         price = user_data['services']['Mustaqil Ish'][max_pages]
-        if balance>=price:
+        if int(balance)>=int(price):
             await db.update_balances(user_id=call.from_user.id,sum=int(balance)-int(price))
             await gg_generate_mustaqil(call=call)
 
@@ -450,7 +450,7 @@ async def success_handler(call: types.CallbackQuery):
         max_pages = page_numbers.group(2).replace('gacha', '')
 
         price = user_data['services']['Bayon'][max_pages]
-        if balance>=price:
+        if int(balance)>=int(price):
             try:
                 await db.update_balances(user_id=call.from_user.id,sum=int(balance)-int(price))
                 await gg_generate_bayon(call=call)
@@ -466,7 +466,7 @@ async def success_handler(call: types.CallbackQuery):
             max_pages = page_numbers.group(2).replace('gacha', '')
 
             price = user_data['services']['Insho'][max_pages]
-            if balance>=price:
+            if int(balance)>=int(price):
                 try:
                     await db.update_balances(user_id=call.from_user.id,sum=int(balance)-int(price))
                     await gg_generate_bayon(call=call)
@@ -482,7 +482,7 @@ async def success_handler(call: types.CallbackQuery):
                 max_pages = page_numbers.group(2).replace('gacha', '')
 
                 price = user_data['services']['Tabrik'][max_pages]
-                if balance>=price:
+                if int(balance)>=int(price):
                     try:
                         await db.update_balances(user_id=call.from_user.id,sum=int(balance)-int(price))
                         await gg_generate_tabrik(call=call)
