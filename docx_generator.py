@@ -38,14 +38,7 @@ async def word_generator(type, mavzu, univer, name, user_id, rejalar: list, them
     # 1-sahifa (title page) ga ramka qo'shamiz
     add_page_border_to_section(doc.sections[0])
 
-    # DEBUG: placeholderlarni tekshirish
-    print("Placeholderlarni tekshirish...")
-    for i, paragraph in enumerate(doc.paragraphs):
-        print(f"Paragraph {i}: {paragraph.text}")
-        for j, run in enumerate(paragraph.runs):
-            print(f"  Run {j}: '{run.text}'")
 
-    # 1. USUL: Avval butun paragraph matnini tekshirish
     for paragraph in doc.paragraphs:
         for run in paragraph.runs:
             if "TypeType" in run.text:
